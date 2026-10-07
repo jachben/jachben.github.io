@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Střih videí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="css">
+:root{
+  --paper:#f6f7f9; --sheet:#ffffff; --ink:#15171c; --muted:#6a7080; --line:#e4e6ec; --soft:#f0f2f6;
+  --accent:#2c44c9; --accent-ink:#ffffff; --accent-soft:#e9ecfb; --danger:#c23b3b; --ok:#1f8a55;
+  --shadow:0 1px 2px rgba(20,24,40,.05),0 8px 30px rgba(20,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1015; --sheet:#171a21; --ink:#eceef3; --muted:#9097a8; --line:#2a2e38; --soft:#1e222b;
+    --accent:#7d8ff5; --accent-ink:#0e1015; --accent-soft:#232a4a; --danger:#ef7b7b; --ok:#5fcf97;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 30px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1015; --sheet:#171a21; --ink:#eceef3; --muted:#9097a8; --line:#2a2e38; --soft:#1e222b;
+  --accent:#7d8ff5; --accent-ink:#0e1015; --accent-soft:#232a4a; --danger:#ef7b7b; --ok:#5fcf97;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 30px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:14px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.head{padding:28px 28px 22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;font-weight:700;font-size:clamp(26px,5vw,34px);line-height:1.1;margin:6px 0 0;text-wrap:balance;letter-spacing:-.01em}
+.meta{display:grid;grid-template-columns:auto auto;gap:4px 16px;align-content:start;font-size:13.5px}
+.meta dt{color:var(--muted)}
+.meta dd{margin:0;font-weight:500;text-align:right}
+.meta dd input{text-align:right;min-width:150px}
+h1 input.h1in{font:inherit;font-family:inherit;color:inherit;padding:2px 6px;margin-left:-6px;width:100%;max-width:420px;border-color:var(--line)}
+@media (max-width:600px){
+  body{padding-inline:0}
+  .sheet,.bar{border-radius:0;border-left:0;border-right:0}
+  .panel{margin-inline:10px}
+  .wrap{gap:10px}
+}
+@media (max-width:560px){.meta dd input{text-align:left}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}
+.stat{padding:14px 28px;display:flex;flex-direction:column;gap:2px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.grp+.grp{border-top:1px solid var(--line)}
+.grphead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;padding:20px 28px 10px}
+.grphead h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:17px;margin:0;letter-spacing:-.005em}
+.grphead .sub{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--soft)}
+thead th:first-child,tbody td:first-child,tfoot td:first-child{padding-left:28px}
+thead th:last-child,tbody td:last-child,tfoot td:last-child{padding-right:28px}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover td{background:var(--soft)}
+tfoot td{padding:12px 10px;font-weight:600;font-size:13.5px;border-top:1px solid var(--line)}
+.num{width:48px;color:var(--muted);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+.price{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+th.price{font-family:inherit}
+.act{width:40px;text-align:right}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13.5px}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:22px 28px;background:var(--ink);color:var(--sheet)}
+.total .lbl{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;opacity:.75}
+.total .sum{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:clamp(26px,6vw,36px);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+input{font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 7px;width:100%}
+input:hover{border-color:var(--line)}
+input:focus{outline:none;border-color:var(--accent);background:var(--sheet);box-shadow:0 0 0 3px var(--accent-soft)}
+input.p{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;max-width:110px;margin-left:auto;display:block}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:8px 13px;font-weight:500;display:inline-flex;align-items:center;gap:7px}
+button:hover{background:var(--soft)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button svg{width:15px;height:15px;flex:none}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.08)}
+button.primary:disabled{opacity:.45;cursor:default;filter:none}
+button.x{border:0;background:transparent;color:var(--muted);padding:4px 8px;font-size:18px;line-height:1}
+button.x:hover{color:var(--danger);background:transparent}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:var(--shadow)}
+.bar .status{font-size:13px;color:var(--muted)}
+.bar .status.dirty{color:var(--danger);font-weight:500}
+.bar .status.saved{color:var(--ok)}
+.bar .btns{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.panel{background:var(--sheet);border:1px dashed var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:14px;font-weight:600}
+.panel h2 em{font-style:normal;color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row input{border-color:var(--line);flex:1 1 200px}
+.row input.p{flex:0 0 110px;margin:0}
+textarea{font:13.5px/1.5 "IBM Plex Mono",ui-monospace,monospace;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:96px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:999px;font-size:13.5px;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--sheet);color:var(--ink);padding:0;max-width:min(560px,calc(100vw - 32px));width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(10,12,18,.45)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-size:16px}
+.dlg textarea{min-height:200px}
+.dlg .row{justify-content:flex-end}
+@media (max-width:560px){
+  .head{padding:22px 18px 18px}
+  .meta dd{text-align:left}
+  .stat{padding:12px 18px}
+  .grphead{padding:18px 18px 8px}
+  thead th:first-child,tbody td:first-child,tfoot td:first-child{padding-left:18px}
+  thead th:last-child,tbody td:last-child,tfoot td:last-child{padding-right:18px}
+  .total{padding:18px}
+  .num{display:none}
+}
+@media print{
+  body{background:#fff;padding:0}
+  .bar,.panel,.act,.toast{display:none!important}
+  .sheet{box-shadow:none;border:0}
+  .grp{break-inside:avoid}
+  tr{break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+.home-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 2px}
+.home-head h1{margin:4px 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+.card:hover{border-color:var(--accent)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card-top{display:flex;flex-direction:column;gap:2px}
+.card-top h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:18px;margin:0;letter-spacing:-.01em}
+.card-client{font-size:12.5px;color:var(--muted)}
+.card-sum{display:flex;align-items:baseline;gap:8px}
+.card-sum b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.card-sum span{font-size:12.5px;color:var(--muted)}
+.card-groups{display:flex;flex-wrap:wrap;gap:6px}
+.card-groups span{font-size:11.5px;color:var(--muted);background:var(--soft);border-radius:999px;padding:3px 9px}
+.card-acts{display:flex;gap:8px;align-items:center;margin-top:2px}
+.card-acts button{padding:6px 11px;font-size:13.5px}
+.card-acts .x{margin-left:auto;font-size:18px;padding:4px 8px}
+.bar #home{margin-right:auto}
+</style>
+<style>:root{color-scheme:light dark}html,body{margin:0}</style>
+</head>
+<body>
+<script type="application/json" id="data">{"tables":[{"name":"Střih videí","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"vido navíc diamant","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://claude.ai/artifact/KEHTfmFjku5cARiNP5n9ZX"}]}</script>
+
+<div class="wrap" id="root"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="copydlg"><form class="dlg" method="dialog"><h2>Zkopírujte text</h2><p class="hint">Označte text a zkopírujte ho (Cmd+C).</p><textarea id="copytext" readonly></textarea><div class="row"><button value="ok" class="primary" type="submit">Zavřít</button></div></form></dialog>
+
+<script id="app">
+(function(){
+  var ICON = {
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>',
+    print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="7" rx="2"/><path d="M7 16h10v5H7z"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 16-5-5L5 20"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+  };
+
+  var MH = (window.webkit && window.webkit.messageHandlers) || null;
+  var native = !!(MH && MH.save);
+  function post(name, payload){
+    try { if (MH && MH[name]) { MH[name].postMessage(payload); return true; } } catch (e) {}
+    return false;
+  }
+
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function uid(){ return 't' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+
+  function emptyGroups(){
+    return [{ key: 'reels', label: 'Reels', items: [] },
+            { key: 'long', label: 'Long-form videa', items: [] }];
+  }
+
+  function normalizeTable(t, i){
+    t = t || {};
+    t.id = t.id || uid();
+    t.name = t.name || t.title || ('Tabulka ' + (i + 1));
+    t.client = t.client || '';
+    t.editor = t.editor || '';
+    t.period = t.period || '';
+    t.shareUrl = t.shareUrl || '';
+    t.currency = t.currency || 'Kč';
+    t.groups = (t.groups && t.groups.length) ? t.groups : emptyGroups();
+    t.groups.forEach(function(g, gi){
+      g.key = g.key || ('g' + gi);
+      g.label = g.label || 'Videa';
+      g.items = (g.items || []).map(function(it){
+        return { name: String(it.name || ''), price: (it.price === '' || it.price == null) ? '' : (Number(it.price) || 0) };
+      });
+    });
+    return t;
+  }
+
+  function normalize(d){
+    d = d || {};
+    var tables;
+    if (d.tables && d.tables.length) tables = d.tables;
+    else if (d.groups) tables = [{ name: d.title || 'Střih videí', client: d.client, editor: d.editor, period: d.period, currency: d.currency, groups: d.groups }];
+    else tables = [{ name: 'Střih videí', groups: emptyGroups() }];
+    return { tables: tables.map(normalizeTable) };
+  }
+
+  var saved = normalize(JSON.parse(document.getElementById('data').textContent));
+  if (window.__SAVED__) saved = normalize(window.__SAVED__);
+  var state = clone(saved);
+
+  var openId = (state.tables[0] && state.tables[0].id) || null, exporting = true, statusMsg = '';
+  var VIEW_ONLY = true;
+  var root = document.getElementById('root');
+  var toastEl = document.getElementById('toast'), toastTimer = null;
+
+  try {
+    var last = sessionStorage.getItem('open-table');
+    if (last && findTable(last)) openId = last;
+  } catch (e) {}
+
+  function findTable(id){
+    for (var i = 0; i < state.tables.length; i++) if (state.tables[i].id === id) return state.tables[i];
+    return null;
+  }
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function num(n){ return (Math.round(n * 100) / 100).toLocaleString('cs-CZ').replace(/ /g, ' '); }
+  function fmt(t, n){ return num(n) + ' ' + t.currency; }
+  function sum(items){ return items.reduce(function(a, it){ return a + (Number(it.price) || 0); }, 0); }
+  function tableItems(t){ return t.groups.reduce(function(a, g){ return a.concat(g.items); }, []); }
+  function tableTotal(t){ return sum(tableItems(t)); }
+  function videos(n){ return n === 1 ? 'video' : (n >= 2 && n <= 4 ? 'videa' : 'videí'); }
+
+  function save(){
+    statusMsg = '';
+    if (native && post('save', JSON.stringify(state))) return;
+    try { localStorage.setItem('tabulka-data', JSON.stringify(state)); } catch (e) {}
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 2600);
+  }
+
+  function parsePrice(v){ var n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; }
+
+  // ---------- úvodní stránka se všemi tabulkami ----------
+
+  function renderHome(){
+    var h = '<header class="home-head"><div><div class="eyebrow">Moje tabulky</div><h1>Přehledy střihu</h1></div>' +
+      '<button id="new" type="button" class="primary">' + ICON.plus + 'Nová tabulka</button></header>';
+
+    if (!state.tables.length) {
+      h += '<p class="hint" style="text-align:center;padding:40px 0">Zatím tu nic není. Založte první tabulku.</p>';
+      return h;
+    }
+
+    h += '<div class="cards">';
+    state.tables.forEach(function(t){
+      var n = tableItems(t).length;
+      h += '<article class="card" data-open="' + t.id + '" tabindex="0" role="button" aria-label="Otevřít ' + esc(t.name) + '">' +
+        '<div class="card-top"><h2>' + esc(t.name) + '</h2>' + (t.client ? '<span class="card-client">' + esc(t.client) + '</span>' : '') + '</div>' +
+        '<div class="card-sum"><b>' + esc(n ? fmt(t, tableTotal(t)) : '—') + '</b><span>' + n + ' ' + videos(n) + '</span></div>' +
+        '<div class="card-groups">' + t.groups.map(function(g){
+          return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>';
+        }).join('') + '</div>' +
+        '<div class="card-acts">' +
+          '<button type="button" data-open="' + t.id + '" class="primary">Otevřít</button>' +
+          (t.shareUrl ? '<button type="button" data-link="' + t.id + '">' + ICON.link + 'Odkaz</button>' : '') +
+          '<button type="button" data-del-table="' + t.id + '" class="x" title="Smazat tabulku" aria-label="Smazat tabulku ' + esc(t.name) + '">×</button>' +
+        '</div></article>';
+    });
+    h += '</div>';
+    h += '<p class="hint" style="text-align:center">Tuhle stránku vidíte jen vy. Klientovi posíláte vždycky jednu konkrétní tabulku.</p>';
+    return h;
+  }
+
+  // ---------- jedna tabulka ----------
+
+  function metaRows(t, edit){
+    var fields = [['client', 'Klient', 'Jméno klienta'], ['editor', 'Střih', 'Vaše jméno'], ['period', 'Období', 'Období']];
+    if (edit) {
+      return fields.map(function(f){
+        return '<dt><label for="f-' + f[0] + '">' + esc(f[1]) + '</label></dt>' +
+          '<dd><input id="f-' + f[0] + '" data-meta="' + f[0] + '" value="' + esc(t[f[0]]) + '" placeholder="' + esc(f[2]) + '"></dd>';
+      }).join('');
+    }
+    return fields.filter(function(f){ return t[f[0]]; })
+      .map(function(f){ return '<dt>' + esc(f[1]) + '</dt><dd>' + esc(t[f[0]]) + '</dd>'; }).join('');
+  }
+
+  function renderTable(t){
+    var edit = !exporting;
+    var items = tableItems(t), total = sum(items), n = items.length;
+    var h = '';
+
+    if (!exporting) {
+      h += '<div class="bar">' +
+        '<button id="home" type="button">' + ICON.back + 'Všechny tabulky</button>' +
+        '<div class="btns">' +
+        (t.shareUrl ? '<button id="link" type="button" class="primary">' + ICON.link + 'Kopírovat odkaz</button>' : '') +
+        '<button id="sharetext" type="button">' + ICON.copy + 'Kopírovat text</button>' +
+        '<button id="png" type="button">' + ICON.image + 'Obrázek</button>' +
+        '<button id="pdf" type="button">' + ICON.print + 'PDF</button>' +
+        '</div></div>';
+    }
+
+    h += '<article class="sheet"><header class="head"><div><div class="eyebrow">Přehled práce</div>' +
+      (edit ? '<h1><input id="f-name" class="h1in" data-meta="name" value="' + esc(t.name) + '" placeholder="Název tabulky" aria-label="Název tabulky"></h1>'
+            : '<h1>' + esc(t.name) + '</h1>') +
+      '</div>' + (metaRows(t, edit) ? '<dl class="meta">' + metaRows(t, edit) + '</dl>' : '') + '</header>';
+
+    h += '<div class="stats"><div class="stat"><b>' + n + '</b><span>' + videos(n) + ' celkem</span></div>';
+    t.groups.forEach(function(g){
+      h += '<div class="stat"><b>' + esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</b><span>' + esc(g.label.toLowerCase()) + ' (' + g.items.length + ')</span></div>';
+    });
+    h += '</div>';
+
+    t.groups.forEach(function(g, gi){
+      var st = sum(g.items);
+      h += '<section class="grp"><div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' +
+        (g.items.length ? g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, st) : 'zatím prázdné') + '</span></div>';
+      h += '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th>' + (edit ? '<th class="act"></th>' : '') + '</tr></thead><tbody>';
+      if (!g.items.length) h += '<tr><td class="empty" colspan="' + (edit ? 4 : 3) + '">Zatím žádná videa v této kategorii</td></tr>';
+      g.items.forEach(function(it, i){
+        h += '<tr><td class="num">' + (i + 1) + '</td>';
+        if (edit) {
+          h += '<td><input id="n-' + gi + '-' + i + '" data-g="' + gi + '" data-i="' + i + '" data-f="name" value="' + esc(it.name) + '" aria-label="Název videa"></td>' +
+            '<td class="price"><input id="p-' + gi + '-' + i + '" class="p" data-g="' + gi + '" data-i="' + i + '" data-f="price" inputmode="decimal" value="' + esc(it.price) + '" aria-label="Cena"></td>' +
+            '<td class="act"><button class="x" type="button" data-del="' + gi + '-' + i + '" title="Smazat" aria-label="Smazat ' + esc(it.name) + '">×</button></td>';
+        } else {
+          h += '<td>' + esc(it.name) + '</td><td class="price">' + esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td>';
+        }
+        h += '</tr>';
+      });
+      h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' +
+        esc(g.items.length ? fmt(t, st) : '—') + '</td>' + (edit ? '<td class="act"></td>' : '') + '</tr></tfoot></table></div></section>';
+    });
+
+    h += '<div class="total"><span class="lbl">Celkem k úhradě</span><span class="sum">' + esc(n ? fmt(t, total) : '—') + '</span></div></article>';
+
+    if (edit) {
+      t.groups.forEach(function(g, gi){
+        h += '<section class="panel"><h2>Přidat do <em>' + esc(g.label) + '</em></h2><div class="row">' +
+          '<input id="new-name-' + gi + '" data-add="' + gi + '" placeholder="Název videa" aria-label="Název nového videa">' +
+          '<input id="new-price-' + gi + '" class="p" data-addp="' + gi + '" inputmode="decimal" value="" aria-label="Cena nového videa">' +
+          '<button type="button" class="primary" data-addbtn="' + gi + '">Přidat</button></div>' +
+          '<textarea id="bulk-' + gi + '" aria-label="Víc videí najednou"></textarea>' +
+          '<div class="row"><button type="button" data-bulk="' + gi + '">Přidat všechny</button></div></section>';
+      });
+      h += '<section class="panel"><h2>Odkaz na sdílení</h2>' +
+        '<p class="hint">Sem vložte odkaz, na kterém má klient tabulku otevřít. Pak ho jedním klikem zkopírujete na úvodní stránce i tady nahoře.</p>' +
+        '<div class="row"><input id="f-share" data-meta="shareUrl" value="' + esc(t.shareUrl) + '" placeholder="https://..." aria-label="Odkaz na sdílení"></div></section>';
+    }
+
+    return h;
+  }
+
+  function render(){
+    var t = openId ? findTable(openId) : null;
+    var active = document.activeElement && document.activeElement.id;
+    var pos = active && document.activeElement.selectionStart;
+    root.innerHTML = t ? renderTable(t) : renderHome();
+    if (active) {
+      var el = document.getElementById(active);
+      if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (e) {} }
+    }
+  }
+
+  // ---------- akce ----------
+
+  function openTable(id){
+    openId = id;
+    try { sessionStorage.setItem('open-table', id); } catch (e) {}
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function goHome(){
+    openId = null;
+    try { sessionStorage.removeItem('open-table'); } catch (e) {}
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function addOne(gi){
+    var t = findTable(openId); if (!t) return;
+    var ni = document.getElementById('new-name-' + gi), pi = document.getElementById('new-price-' + gi);
+    var name = ni.value.trim(); if (!name) { ni.focus(); return; }
+    t.groups[gi].items.push({ name: name, price: pi.value.trim() === '' ? '' : parsePrice(pi.value) });
+    save(); render();
+    var again = document.getElementById('new-name-' + gi);
+    if (again) { again.value = ''; again.focus(); }
+  }
+
+  function summary(t){
+    var lines = [t.name];
+    if (t.client) lines.push('Klient: ' + t.client);
+    if (t.period) lines.push('Období: ' + t.period);
+    lines.push('');
+    t.groups.forEach(function(g){
+      lines.push(g.label.toUpperCase() + ' — ' + g.items.length + ' ' + videos(g.items.length) + ', ' + fmt(t, sum(g.items)));
+      g.items.forEach(function(it, i){ lines.push('  ' + (i + 1) + '. ' + it.name + (it.price === '' ? '' : ' — ' + fmt(t, Number(it.price) || 0))); });
+      lines.push('');
+    });
+    var items = tableItems(t);
+    lines.push('CELKEM: ' + items.length + ' ' + videos(items.length) + ' — ' + fmt(t, sum(items)));
+    return lines.join('\n');
+  }
+
+  function copy(text, msg){
+    msg = msg || 'Zkopírováno';
+    if (native && post('copyText', text)) { toast(msg); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ showCopyDialog(text); });
+    } else showCopyDialog(text);
+  }
+
+  function showCopyDialog(text){
+    var dlg = document.getElementById('copydlg'), ta = document.getElementById('copytext');
+    ta.value = text;
+    if (dlg.showModal) { dlg.showModal(); ta.focus(); ta.select(); }
+    else toast('Kopírování zde není povolené');
+  }
+
+  root.addEventListener('input', function(e){
+    var el = e.target, t = findTable(openId);
+    if (!t) return;
+    if (el.dataset.f) {
+      var it = t.groups[+el.dataset.g].items[+el.dataset.i];
+      if (el.dataset.f === 'name') it.name = el.value; else it.price = el.value.trim() === '' ? '' : parsePrice(el.value);
+      save(); render();
+    } else if (el.dataset.meta) {
+      t[el.dataset.meta] = el.value; save(); render();
+    }
+  });
+
+  root.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter') return;
+    var gi = e.target.dataset.add || e.target.dataset.addp;
+    if (gi != null) { e.preventDefault(); addOne(+gi); return; }
+    var card = e.target.closest && e.target.closest('[data-open]');
+    if (card && e.target === card) { e.preventDefault(); openTable(card.dataset.open); }
+  });
+
+  root.addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    var t = findTable(openId);
+
+    if (b) {
+      if (b.dataset.open) { openTable(b.dataset.open); return; }
+      if (b.dataset.link) {
+        var lt = findTable(b.dataset.link);
+        if (lt) copy(lt.shareUrl, 'Odkaz zkopírován — vložte ho do chatu');
+        return;
+      }
+      if (b.dataset.delTable) {
+        var dt = findTable(b.dataset.delTable);
+        if (dt && window.confirm('Opravdu smazat tabulku „' + dt.name + '“? Tahle akce se nedá vrátit.')) {
+          state.tables = state.tables.filter(function(x){ return x.id !== dt.id; });
+          save(); render();
+        }
+        return;
+      }
+      if (b.id === 'new') {
+        var nt = normalizeTable({ name: 'Nová tabulka', groups: emptyGroups() }, state.tables.length);
+        state.tables.push(nt); save(); openTable(nt.id);
+        setTimeout(function(){ var f = document.getElementById('f-name'); if (f) { f.focus(); f.select(); } }, 30);
+        return;
+      }
+      if (b.id === 'home') { goHome(); return; }
+      if (!t) return;
+      if (b.id === 'link') { copy(t.shareUrl, 'Odkaz zkopírován — vložte ho do chatu'); return; }
+      if (b.id === 'sharetext') { copy(summary(t), 'Přehled zkopírován'); return; }
+      if (b.id === 'png') { if (post('savePNG', '')) toast('Ukládám obrázek na plochu…'); return; }
+      if (b.id === 'pdf') { if (post('savePDF', '')) toast('Ukládám PDF na plochu…'); else window.print(); return; }
+      if (b.dataset.del != null) {
+        var p = b.dataset.del.split('-');
+        t.groups[+p[0]].items.splice(+p[1], 1); save(); render(); return;
+      }
+      if (b.dataset.addbtn != null) { addOne(+b.dataset.addbtn); return; }
+      if (b.dataset.bulk != null) {
+        var gi = +b.dataset.bulk, ta = document.getElementById('bulk-' + gi);
+        ta.value.split(/\n/).forEach(function(l){
+          l = l.trim(); if (!l) return;
+          var m = l.match(/^(.*?)\s*[–—-]?\s*(\d[\d\s]*(?:[.,]\d+)?)\s*(?:kč|czk)?\s*$/i);
+          if (m && m[1].trim()) t.groups[gi].items.push({ name: m[1].replace(/[:\s–—-]+$/, '').trim(), price: parsePrice(m[2]) });
+          else t.groups[gi].items.push({ name: l.replace(/[:\s]+$/, ''), price: '' });
+        });
+        save(); render(); return;
+      }
+      return;
+    }
+
+    var card = e.target.closest('.card');
+    if (card && card.dataset.open) openTable(card.dataset.open);
+  });
+
+  window.__setExport = function(){};
+  var __unused = function(on){
+    if (on) { exporting = true; document.documentElement.setAttribute('data-theme', 'light'); }
+    else { exporting = false; document.documentElement.removeAttribute('data-theme'); }
+    render();
+  };
+
+  render();
+})();
+</script>
+
+</body>
+</html>
