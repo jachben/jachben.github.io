@@ -140,11 +140,26 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 .card-acts button{padding:6px 11px;font-size:13.5px}
 .card-acts .x{margin-left:auto;font-size:18px;padding:4px 8px}
 .bar #home{margin-right:auto}
+.arch{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.arch+.arch{margin-top:10px}
+.arch>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;padding:16px 20px;font-weight:600}
+.arch>summary::-webkit-details-marker{display:none}
+.arch>summary:hover{background:var(--soft)}
+.arch>summary .when{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-size:16px}
+.arch>summary .what{font-size:12.5px;color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.arch[open]>summary{border-bottom:1px solid var(--line)}
+.arch .grphead{padding:14px 20px 6px}
+.arch thead th:first-child,.arch tbody td:first-child,.arch tfoot td:first-child{padding-left:20px}
+.arch thead th:last-child,.arch tbody td:last-child,.arch tfoot td:last-child{padding-right:20px}
+.arch-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 2px 2px}
+.arch-head h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-size:15px;margin:0}
+.arch-head span{font-size:12.5px;color:var(--muted)}
+.arch-del{margin-left:8px}
 </style>
 <style>:root{color-scheme:light dark}html,body{margin:0}</style>
 </head>
 <body>
-<script type="application/json" id="data">{"tables":[{"name":"Střih videí","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"vido navíc diamant","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://claude.ai/artifact/KEHTfmFjku5cARiNP5n9ZX"}]}</script>
+<script type="application/json" id="data">{"tables":[{"name":"Střih videí","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://jachben.github.io/"}]}</script>
 
 <div class="wrap" id="root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -172,6 +187,12 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
   function uid(){ return 't' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
 
+  var MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+  function monthLabel(){
+    var d = new Date();
+    return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
   function emptyGroups(){
     return [{ key: 'reels', label: 'Reels', items: [] },
             { key: 'long', label: 'Long-form videa', items: [] }];
@@ -187,6 +208,19 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     t.shareUrl = t.shareUrl || '';
     t.currency = t.currency || 'Kč';
     t.groups = (t.groups && t.groups.length) ? t.groups : emptyGroups();
+    t.archives = (t.archives || []).map(function(ar, ai){
+      ar.id = ar.id || ('a' + ai + Date.now().toString(36));
+      ar.label = ar.label || 'Archiv';
+      ar.groups = (ar.groups || []).map(function(g, gi){
+        g.key = g.key || ('g' + gi);
+        g.label = g.label || 'Videa';
+        g.items = (g.items || []).map(function(it){
+          return { name: String(it.name || ''), price: (it.price === '' || it.price == null) ? '' : (Number(it.price) || 0) };
+        });
+        return g;
+      });
+      return ar;
+    });
     t.groups.forEach(function(g, gi){
       g.key = g.key || ('g' + gi);
       g.label = g.label || 'Videa';
@@ -342,6 +376,28 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
     h += '<div class="total"><span class="lbl">Celkem k úhradě</span><span class="sum">' + esc(n ? fmt(t, total) : '—') + '</span></div></article>';
 
+    if (t.archives.length) {
+      h += '<div class="arch-head"><h2>Archiv</h2><span>' + t.archives.length + ' ' + (t.archives.length === 1 ? 'měsíc' : (t.archives.length <= 4 ? 'měsíce' : 'měsíců')) + '</span></div>';
+      t.archives.forEach(function(ar){
+        var aitems = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
+        h += '<details class="arch"><summary><span class="when">' + esc(ar.label) + '</span>' +
+          '<span class="what">' + aitems.length + ' ' + videos(aitems.length) + ' · ' + esc(fmt(t, sum(aitems))) +
+          (edit ? '<button class="x arch-del" type="button" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
+          '</span></summary>';
+        ar.groups.forEach(function(g){
+          if (!g.items.length) return;
+          h += '<div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' + g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, sum(g.items)) + '</span></div>' +
+            '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th></tr></thead><tbody>';
+          g.items.forEach(function(it, i){
+            h += '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(it.name) + '</td><td class="price">' +
+              esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td></tr>';
+          });
+          h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' + esc(fmt(t, sum(g.items))) + '</td></tr></tfoot></table></div>';
+        });
+        h += '<div class="total"><span class="lbl">Archiv ' + esc(ar.label) + '</span><span class="sum">' + esc(fmt(t, sum(aitems))) + '</span></div></details>';
+      });
+    }
+
     if (edit) {
       t.groups.forEach(function(g, gi){
         h += '<section class="panel"><h2>Přidat do <em>' + esc(g.label) + '</em></h2><div class="row">' +
@@ -351,9 +407,13 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
           '<textarea id="bulk-' + gi + '" aria-label="Víc videí najednou"></textarea>' +
           '<div class="row"><button type="button" data-bulk="' + gi + '">Přidat všechny</button></div></section>';
       });
-      h += '<section class="panel"><h2>Odkaz na sdílení</h2>' +
-        '<p class="hint">Sem vložte odkaz, na kterém má klient tabulku otevřít. Pak ho jedním klikem zkopírujete na úvodní stránce i tady nahoře.</p>' +
-        '<div class="row"><input id="f-share" data-meta="shareUrl" value="' + esc(t.shareUrl) + '" placeholder="https://..." aria-label="Odkaz na sdílení"></div></section>';
+
+    }
+
+    if (edit) {
+      h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
+        '<p class="hint">Všechna videa z tabulky se přesunou do archivu <strong>' + esc(monthLabel()) + '</strong> a tabulka začne znovu od nuly. Archiv zůstane dole, takže se kdykoliv podíváte, co už je hotové.</p>' +
+        '<div class="row"><button id="archive" type="button" class="primary"' + (n ? '' : ' disabled') + '>Archivovat ' + n + ' ' + videos(n) + '</button></div></section>';
     }
 
     return h;
@@ -394,6 +454,19 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     save(); render();
     var again = document.getElementById('new-name-' + gi);
     if (again) { again.value = ''; again.focus(); }
+  }
+
+  function archiveNow(t){
+    var items = tableItems(t);
+    if (!items.length) { toast('Tabulka je prázdná, není co archivovat'); return; }
+    var label = monthLabel();
+    var same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
+    if (same) label = label + ' (' + (same + 1) + ')';
+    if (!window.confirm('Přesunout ' + items.length + ' ' + videos(items.length) + ' do archivu „' + label + '“? Tabulka se vyprázdní.')) return;
+    t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
+    t.groups.forEach(function(g){ g.items = []; });
+    save(); render();
+    toast('Hotovo — videa jsou v archivu ' + label);
   }
 
   function summary(t){
@@ -473,6 +546,16 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
       }
       if (b.id === 'home') { goHome(); return; }
       if (!t) return;
+      if (b.id === 'archive') { archiveNow(t); return; }
+      if (b.dataset.delArch) {
+        var ar = null;
+        t.archives.forEach(function(x){ if (x.id === b.dataset.delArch) ar = x; });
+        if (ar && window.confirm('Opravdu smazat archiv „' + ar.label + '“? Tahle akce se nedá vrátit.')) {
+          t.archives = t.archives.filter(function(x){ return x.id !== ar.id; });
+          save(); render();
+        }
+        return;
+      }
       if (b.id === 'link') { copy(t.shareUrl, 'Odkaz zkopírován — vložte ho do chatu'); return; }
       if (b.id === 'sharetext') { copy(summary(t), 'Přehled zkopírován'); return; }
       if (b.id === 'png') { if (post('savePNG', '')) toast('Ukládám obrázek na plochu…'); return; }
