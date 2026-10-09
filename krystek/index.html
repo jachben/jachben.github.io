@@ -244,7 +244,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   if (window.__SAVED__) saved = normalize(window.__SAVED__);
   var state = clone(saved);
 
-  var openId = (state.tables[0] && state.tables[0].id) || null, openArchId = null, exporting = true, statusMsg = '';
+  var openId = (state.tables[0] && state.tables[0].id) || null, openArchId = null, exporting = false, statusMsg = '';
   var VIEW_ONLY = true;
   var root = document.getElementById('root');
   var toastEl = document.getElementById('toast'), toastTimer = null;
@@ -327,11 +327,11 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   }
 
   function renderTable(t){
-    var edit = !exporting;
+    var edit = !exporting && !VIEW_ONLY;
     var items = tableItems(t), total = sum(items), n = items.length;
     var h = '';
 
-    if (!exporting) {
+    if (!exporting && !VIEW_ONLY) {
       h += '<div class="bar">' +
         '<button id="home" type="button">' + ICON.back + 'Všechny tabulky</button>' +
         '<div class="btns">' +
