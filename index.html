@@ -376,22 +376,6 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
     h += '<div class="total"><span class="lbl">Celkem k úhradě</span><span class="sum">' + esc(n ? fmt(t, total) : '—') + '</span></div></article>';
 
-    if (t.archives.length) {
-      h += '<div class="arch-head"><h2>Archiv</h2><span>' + t.archives.length + ' ' + (t.archives.length === 1 ? 'měsíc' : (t.archives.length <= 4 ? 'měsíce' : 'měsíců')) + '</span></div>';
-      h += '<div class="cards">';
-      t.archives.forEach(function(ar){
-        var aitems = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
-        h += '<article class="card" data-arch="' + ar.id + '" tabindex="0" role="button" aria-label="Otevřít archiv ' + esc(ar.label) + '">' +
-          '<div class="card-top"><h2>' + esc(ar.label) + '</h2><span class="card-client">uzavřený měsíc</span></div>' +
-          '<div class="card-sum"><b>' + esc(fmt(t, sum(aitems))) + '</b><span>' + aitems.length + ' ' + videos(aitems.length) + '</span></div>' +
-          '<div class="card-groups">' + ar.groups.map(function(g){ return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>'; }).join('') + '</div>' +
-          '<div class="card-acts"><button type="button" data-arch="' + ar.id + '" class="primary">Otevřít</button>' +
-          (edit ? '<button type="button" class="x" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
-          '</div></article>';
-      });
-      h += '</div>';
-    }
-
     if (edit) {
       t.groups.forEach(function(g, gi){
         h += '<section class="panel"><h2>Přidat do <em>' + esc(g.label) + '</em></h2><div class="row">' +
@@ -408,6 +392,22 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
       h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
         '<p class="hint">Všechna videa z tabulky se přesunou do archivu <strong>' + esc(monthLabel()) + '</strong> a tabulka začne znovu od nuly. Archiv zůstane dole, takže se kdykoliv podíváte, co už je hotové.</p>' +
         '<div class="row"><button id="archive" type="button" class="primary"' + (n ? '' : ' disabled') + '>Archivovat ' + n + ' ' + videos(n) + '</button></div></section>';
+    }
+
+    if (t.archives.length) {
+      h += '<div class="arch-head"><h2>Archiv</h2><span>' + t.archives.length + ' ' + (t.archives.length === 1 ? 'měsíc' : (t.archives.length <= 4 ? 'měsíce' : 'měsíců')) + '</span></div>';
+      h += '<div class="cards">';
+      t.archives.forEach(function(ar){
+        var aitems = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
+        h += '<article class="card" data-arch="' + ar.id + '" tabindex="0" role="button" aria-label="Otevřít archiv ' + esc(ar.label) + '">' +
+          '<div class="card-top"><h2>' + esc(ar.label) + '</h2><span class="card-client">uzavřený měsíc</span></div>' +
+          '<div class="card-sum"><b>' + esc(fmt(t, sum(aitems))) + '</b><span>' + aitems.length + ' ' + videos(aitems.length) + '</span></div>' +
+          '<div class="card-groups">' + ar.groups.map(function(g){ return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>'; }).join('') + '</div>' +
+          '<div class="card-acts"><button type="button" data-arch="' + ar.id + '" class="primary">Otevřít</button>' +
+          (edit ? '<button type="button" class="x" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
+          '</div></article>';
+      });
+      h += '</div>';
     }
 
     return h;
