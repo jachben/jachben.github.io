@@ -159,7 +159,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 <style>:root{color-scheme:light dark}html,body{margin:0}</style>
 </head>
 <body>
-<script type="application/json" id="data">{"tables":[{"name":"krystek.kuba","groups":[{"key":"reels","label":"Reels","items":[]},{"key":"long","label":"Long-form videa","items":[]}],"id":"tmuyih3p4z6","client":"","editor":"","period":"","shareUrl":"https://jachben.github.io/krystek-kuba/","currency":"Kč","archives":[],"sitePath":"krystek"}]}</script>
+<script type="application/json" id="data">{"tables":[{"name":"krystek.kuba","groups":[{"key":"reels","label":"Reels","items":[]},{"key":"long","label":"Long-form videa","items":[]}],"id":"tmuyih3p4z6","client":"","editor":"","period":"","shareUrl":"https://jachben.github.io/krystek/","currency":"Kč","archives":[],"sitePath":"krystek","publishedAt":"1791548791"}]}</script>
 
 <div class="wrap" id="root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -207,6 +207,8 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     t.editor = t.editor || '';
     t.period = t.period || '';
     t.shareUrl = t.shareUrl || '';
+    t.publishedAt = t.publishedAt || '';
+    t.sitePath = t.sitePath || '';
     t.currency = t.currency || 'Kč';
     t.groups = (t.groups && t.groups.length) ? t.groups : emptyGroups();
     t.archives = (t.archives || []).map(function(ar, ai){
@@ -245,7 +247,20 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   if (window.__SAVED__) saved = normalize(window.__SAVED__);
   var state = clone(saved);
 
-  var openId = (state.tables[0] && state.tables[0].id) || null, openArchId = null, exporting = false, statusMsg = '';
+  function loadClientCopy(){
+    try {
+      var t = state.tables[0]; if (!t) return;
+      var raw = localStorage.getItem('tabulka-klient-' + (t.sitePath || t.id || 'x'));
+      if (!raw) return;
+      var mine = JSON.parse(raw);
+      var theirs = mine.tables && mine.tables[0];
+      // majitel mezitím zveřejnil novější verzi → jeho data mají přednost
+      if (!theirs || theirs.publishedAt !== t.publishedAt) return;
+      state = normalize(mine);
+    } catch (e) {}
+  }
+
+  var openId = null, openArchId = null, exporting = false, statusMsg = '';
   var VIEW_ONLY = true;
   var root = document.getElementById('root');
   var toastEl = document.getElementById('toast'), toastTimer = null;
@@ -268,8 +283,17 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   function tableTotal(t){ return sum(tableItems(t)); }
   function videos(n){ return n === 1 ? 'video' : (n >= 2 && n <= 4 ? 'videa' : 'videí'); }
 
+  function viewKey(){
+    var t = state.tables[0] || {};
+    return 'tabulka-klient-' + (t.sitePath || t.id || 'x');
+  }
+
   function save(){
     statusMsg = '';
+    if (VIEW_ONLY) {
+      try { localStorage.setItem(viewKey(), JSON.stringify(state)); } catch (e) {}
+      return;
+    }
     if (native && post('save', JSON.stringify(state))) return;
     try { localStorage.setItem('tabulka-data', JSON.stringify(state)); } catch (e) {}
   }
@@ -389,6 +413,12 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
           '<div class="row"><button type="button" data-bulk="' + gi + '">Přidat všechny</button></div></section>';
       });
 
+    }
+
+    if (VIEW_ONLY && !exporting && n) {
+      h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
+        '<p class="hint">Až bude měsíc vyfakturovaný, přesuňte videa do archivu. Zůstanou dole a kdykoliv se do nich podíváte. Dostanete i krátký text, který pošlete střihači, aby si měsíc uzavřel taky.</p>' +
+        '<div class="row"><button id="clientarchive" type="button" class="primary">Uzavřít měsíc (' + n + ' ' + videos(n) + ')</button></div></section>';
     }
 
     if (edit) {
@@ -512,6 +542,22 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     toast('Hotovo — videa najdete dole v archivu ' + label);
   }
 
+  function clientArchive(t){
+    var items = tableItems(t);
+    if (!items.length) return;
+    var label = monthLabel();
+    var same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
+    if (same) label = label + ' (' + (same + 1) + ')';
+    if (!window.confirm('Přesunout ' + items.length + ' ' + videos(items.length) + ' do archivu „' + label + '“?')) return;
+    var total = sum(items);
+    t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
+    t.groups.forEach(function(g){ g.items = []; });
+    save(); render();
+    showCopyDialog('Uzavřel jsem měsíc ' + label + ' u tabulky „' + t.name + '“: ' +
+      items.length + ' ' + videos(items.length) + ', ' + fmt(t, total) + '. ' +
+      'Můžeš to archivovat i u sebe v aplikaci.');
+  }
+
   function summary(t){
     var lines = [t.name];
     if (t.client) lines.push('Klient: ' + t.client);
@@ -538,6 +584,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   function showCopyDialog(text){
     var dlg = document.getElementById('copydlg'), ta = document.getElementById('copytext');
     ta.value = text;
+    if (navigator.clipboard && navigator.clipboard.writeText) { try { navigator.clipboard.writeText(text); } catch (e) {} }
     if (dlg.showModal) { dlg.showModal(); ta.focus(); ta.select(); }
     else toast('Kopírování zde není povolené');
   }
@@ -599,6 +646,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
       if (!t) return;
       if (b.id === 'publish') { if (post('publish', '')) toast('Zveřejňuji na web…'); return; }
       if (b.id === 'archive') { archiveNow(t); return; }
+      if (b.id === 'clientarchive') { clientArchive(t); return; }
       if (b.dataset.delArch) {
         var ar = null;
         t.archives.forEach(function(x){ if (x.id === b.dataset.delArch) ar = x; });
@@ -642,6 +690,8 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     render();
   };
 
+  loadClientCopy();
+  openId = (state.tables[0] && state.tables[0].id) || null;
   render();
 })();
 </script>

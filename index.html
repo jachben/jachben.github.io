@@ -159,7 +159,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 <style>:root{color-scheme:light dark}html,body{margin:0}</style>
 </head>
 <body>
-<script type="application/json" id="data">{"tables":[{"name":"Střih videí-AD","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://jachben.github.io/","archives":[]}]}</script>
+<script type="application/json" id="data">{"tables":[{"name":"Střih videí-AD","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://jachben.github.io/","archives":[],"publishedAt":"1791548791"}]}</script>
 
 <div class="wrap" id="root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -207,6 +207,8 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     t.editor = t.editor || '';
     t.period = t.period || '';
     t.shareUrl = t.shareUrl || '';
+    t.publishedAt = t.publishedAt || '';
+    t.sitePath = t.sitePath || '';
     t.currency = t.currency || 'Kč';
     t.groups = (t.groups && t.groups.length) ? t.groups : emptyGroups();
     t.archives = (t.archives || []).map(function(ar, ai){
@@ -245,7 +247,20 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   if (window.__SAVED__) saved = normalize(window.__SAVED__);
   var state = clone(saved);
 
-  var openId = (state.tables[0] && state.tables[0].id) || null, openArchId = null, exporting = false, statusMsg = '';
+  function loadClientCopy(){
+    try {
+      var t = state.tables[0]; if (!t) return;
+      var raw = localStorage.getItem('tabulka-klient-' + (t.sitePath || t.id || 'x'));
+      if (!raw) return;
+      var mine = JSON.parse(raw);
+      var theirs = mine.tables && mine.tables[0];
+      // majitel mezitím zveřejnil novější verzi → jeho data mají přednost
+      if (!theirs || theirs.publishedAt !== t.publishedAt) return;
+      state = normalize(mine);
+    } catch (e) {}
+  }
+
+  var openId = null, openArchId = null, exporting = false, statusMsg = '';
   var VIEW_ONLY = true;
   var root = document.getElementById('root');
   var toastEl = document.getElementById('toast'), toastTimer = null;
@@ -268,8 +283,17 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   function tableTotal(t){ return sum(tableItems(t)); }
   function videos(n){ return n === 1 ? 'video' : (n >= 2 && n <= 4 ? 'videa' : 'videí'); }
 
+  function viewKey(){
+    var t = state.tables[0] || {};
+    return 'tabulka-klient-' + (t.sitePath || t.id || 'x');
+  }
+
   function save(){
     statusMsg = '';
+    if (VIEW_ONLY) {
+      try { localStorage.setItem(viewKey(), JSON.stringify(state)); } catch (e) {}
+      return;
+    }
     if (native && post('save', JSON.stringify(state))) return;
     try { localStorage.setItem('tabulka-data', JSON.stringify(state)); } catch (e) {}
   }
@@ -389,6 +413,12 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
           '<div class="row"><button type="button" data-bulk="' + gi + '">Přidat všechny</button></div></section>';
       });
 
+    }
+
+    if (VIEW_ONLY && !exporting && n) {
+      h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
+        '<p class="hint">Až bude měsíc vyfakturovaný, přesuňte videa do archivu. Zůstanou dole a kdykoliv se do nich podíváte. Dostanete i krátký text, který pošlete střihači, aby si měsíc uzavřel taky.</p>' +
+        '<div class="row"><button id="clientarchive" type="button" class="primary">Uzavřít měsíc (' + n + ' ' + videos(n) + ')</button></div></section>';
     }
 
     if (edit) {
@@ -512,6 +542,22 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     toast('Hotovo — videa najdete dole v archivu ' + label);
   }
 
+  function clientArchive(t){
+    var items = tableItems(t);
+    if (!items.length) return;
+    var label = monthLabel();
+    var same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
+    if (same) label = label + ' (' + (same + 1) + ')';
+    if (!window.confirm('Přesunout ' + items.length + ' ' + videos(items.length) + ' do archivu „' + label + '“?')) return;
+    var total = sum(items);
+    t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
+    t.groups.forEach(function(g){ g.items = []; });
+    save(); render();
+    showCopyDialog('Uzavřel jsem měsíc ' + label + ' u tabulky „' + t.name + '“: ' +
+      items.length + ' ' + videos(items.length) + ', ' + fmt(t, total) + '. ' +
+      'Můžeš to archivovat i u sebe v aplikaci.');
+  }
+
   function summary(t){
     var lines = [t.name];
     if (t.client) lines.push('Klient: ' + t.client);
@@ -538,6 +584,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   function showCopyDialog(text){
     var dlg = document.getElementById('copydlg'), ta = document.getElementById('copytext');
     ta.value = text;
+    if (navigator.clipboard && navigator.clipboard.writeText) { try { navigator.clipboard.writeText(text); } catch (e) {} }
     if (dlg.showModal) { dlg.showModal(); ta.focus(); ta.select(); }
     else toast('Kopírování zde není povolené');
   }
@@ -599,6 +646,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
       if (!t) return;
       if (b.id === 'publish') { if (post('publish', '')) toast('Zveřejňuji na web…'); return; }
       if (b.id === 'archive') { archiveNow(t); return; }
+      if (b.id === 'clientarchive') { clientArchive(t); return; }
       if (b.dataset.delArch) {
         var ar = null;
         t.archives.forEach(function(x){ if (x.id === b.dataset.delArch) ar = x; });
@@ -642,6 +690,8 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     render();
   };
 
+  loadClientCopy();
+  openId = (state.tables[0] && state.tables[0].id) || null;
   render();
 })();
 </script>
