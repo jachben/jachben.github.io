@@ -244,7 +244,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   if (window.__SAVED__) saved = normalize(window.__SAVED__);
   var state = clone(saved);
 
-  var openId = (state.tables[0] && state.tables[0].id) || null, exporting = true, statusMsg = '';
+  var openId = (state.tables[0] && state.tables[0].id) || null, openArchId = null, exporting = true, statusMsg = '';
   var VIEW_ONLY = true;
   var root = document.getElementById('root');
   var toastEl = document.getElementById('toast'), toastTimer = null;
@@ -378,24 +378,18 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
     if (t.archives.length) {
       h += '<div class="arch-head"><h2>Archiv</h2><span>' + t.archives.length + ' ' + (t.archives.length === 1 ? 'měsíc' : (t.archives.length <= 4 ? 'měsíce' : 'měsíců')) + '</span></div>';
+      h += '<div class="cards">';
       t.archives.forEach(function(ar){
         var aitems = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
-        h += '<details class="arch"><summary><span class="when">' + esc(ar.label) + '</span>' +
-          '<span class="what">' + aitems.length + ' ' + videos(aitems.length) + ' · ' + esc(fmt(t, sum(aitems))) +
-          (edit ? '<button class="x arch-del" type="button" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
-          '</span></summary>';
-        ar.groups.forEach(function(g){
-          if (!g.items.length) return;
-          h += '<div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' + g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, sum(g.items)) + '</span></div>' +
-            '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th></tr></thead><tbody>';
-          g.items.forEach(function(it, i){
-            h += '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(it.name) + '</td><td class="price">' +
-              esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td></tr>';
-          });
-          h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' + esc(fmt(t, sum(g.items))) + '</td></tr></tfoot></table></div>';
-        });
-        h += '<div class="total"><span class="lbl">Archiv ' + esc(ar.label) + '</span><span class="sum">' + esc(fmt(t, sum(aitems))) + '</span></div></details>';
+        h += '<article class="card" data-arch="' + ar.id + '" tabindex="0" role="button" aria-label="Otevřít archiv ' + esc(ar.label) + '">' +
+          '<div class="card-top"><h2>' + esc(ar.label) + '</h2><span class="card-client">uzavřený měsíc</span></div>' +
+          '<div class="card-sum"><b>' + esc(fmt(t, sum(aitems))) + '</b><span>' + aitems.length + ' ' + videos(aitems.length) + '</span></div>' +
+          '<div class="card-groups">' + ar.groups.map(function(g){ return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>'; }).join('') + '</div>' +
+          '<div class="card-acts"><button type="button" data-arch="' + ar.id + '" class="primary">Otevřít</button>' +
+          (edit ? '<button type="button" class="x" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
+          '</div></article>';
       });
+      h += '</div>';
     }
 
     if (edit) {
@@ -419,11 +413,52 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     return h;
   }
 
+  function renderArchive(t, ar){
+    var items = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
+    var h = '';
+    if (!exporting) {
+      h += '<div class="bar"><button id="backtable" type="button">' + ICON.back + 'Zpět do tabulky</button>' +
+        '<div class="btns"><button id="archtext" type="button">' + ICON.copy + 'Kopírovat text</button></div></div>';
+    }
+    h += '<article class="sheet"><header class="head"><div><div class="eyebrow">Uzavřený měsíc</div><h1>' + esc(ar.label) + '</h1></div>' +
+      '<dl class="meta"><dt>Tabulka</dt><dd>' + esc(t.name) + '</dd>' +
+      (t.client ? '<dt>Klient</dt><dd>' + esc(t.client) + '</dd>' : '') + '</dl></header>';
+
+    h += '<div class="stats"><div class="stat"><b>' + items.length + '</b><span>' + videos(items.length) + ' celkem</span></div>';
+    ar.groups.forEach(function(g){
+      h += '<div class="stat"><b>' + esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</b><span>' + esc(g.label.toLowerCase()) + ' (' + g.items.length + ')</span></div>';
+    });
+    h += '</div>';
+
+    ar.groups.forEach(function(g){
+      h += '<section class="grp"><div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' +
+        (g.items.length ? g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, sum(g.items)) : 'zatím prázdné') + '</span></div>' +
+        '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th></tr></thead><tbody>';
+      if (!g.items.length) h += '<tr><td class="empty" colspan="3">V téhle kategorii nebylo nic</td></tr>';
+      g.items.forEach(function(it, i){
+        h += '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(it.name) + '</td><td class="price">' +
+          esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td></tr>';
+      });
+      h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' +
+        esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</td></tr></tfoot></table></div></section>';
+    });
+
+    h += '<div class="total"><span class="lbl">Celkem za ' + esc(ar.label) + '</span><span class="sum">' + esc(fmt(t, sum(items))) + '</span></div></article>';
+    return h;
+  }
+
+  function findArchive(t, id){
+    var found = null;
+    if (t) t.archives.forEach(function(a){ if (a.id === id) found = a; });
+    return found;
+  }
+
   function render(){
     var t = openId ? findTable(openId) : null;
     var active = document.activeElement && document.activeElement.id;
     var pos = active && document.activeElement.selectionStart;
-    root.innerHTML = t ? renderTable(t) : renderHome();
+    var ar = openArchId ? findArchive(t, openArchId) : null;
+    root.innerHTML = ar ? renderArchive(t, ar) : (t ? renderTable(t) : renderHome());
     if (active) {
       var el = document.getElementById(active);
       if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (e) {} }
@@ -432,7 +467,12 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
   // ---------- akce ----------
 
+  function openArchive(id){
+    openArchId = id; render(); window.scrollTo(0, 0);
+  }
+
   function openTable(id){
+    openArchId = null;
     openId = id;
     try { sessionStorage.setItem('open-table', id); } catch (e) {}
     render();
@@ -440,7 +480,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
   }
 
   function goHome(){
-    openId = null;
+    openId = null; openArchId = null;
     try { sessionStorage.removeItem('open-table'); } catch (e) {}
     render();
     window.scrollTo(0, 0);
@@ -466,7 +506,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
     t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
     t.groups.forEach(function(g){ g.items = []; });
     save(); render();
-    toast('Hotovo — videa jsou v archivu ' + label);
+    toast('Hotovo — videa najdete dole v archivu ' + label);
   }
 
   function summary(t){
@@ -525,6 +565,14 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
     if (b) {
       if (b.dataset.open) { openTable(b.dataset.open); return; }
+      if (b.dataset.arch) { openArchive(b.dataset.arch); return; }
+      if (b.id === 'backtable') { openArchId = null; render(); window.scrollTo(0, 0); return; }
+      if (b.id === 'archtext') {
+        var art = findArchive(t, openArchId);
+        if (art) copy(summary({ name: t.name + ' — ' + art.label, client: t.client, period: art.label,
+                                currency: t.currency, groups: art.groups }), 'Přehled zkopírován');
+        return;
+      }
       if (b.dataset.link) {
         var lt = findTable(b.dataset.link);
         if (lt) copy(lt.shareUrl, 'Odkaz zkopírován — vložte ho do chatu');
@@ -580,6 +628,7 @@ dialog::backdrop{background:rgba(10,12,18,.45)}
 
     var card = e.target.closest('.card');
     if (card && card.dataset.open) openTable(card.dataset.open);
+    else if (card && card.dataset.arch) openArchive(card.dataset.arch);
   });
 
   window.__setExport = function(){};
