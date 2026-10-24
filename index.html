@@ -3,698 +3,864 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Střih videí-AD</title>
+<title>Tabulka střihu</title>
+<meta name="description" content="70 videí · 14 900 Kč">
+<meta name="theme-color" content="#0b1030">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Střih videí-AD">
+<meta property="og:title" content="Střih videí-AD">
+<meta property="og:description" content="70 videí · 14 900 Kč">
+<meta property="og:url" content="https://jachben.github.io/">
+<meta property="og:image" content="https://jachben.github.io/ikony/icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="/ikony/favicon.png">
+<link rel="apple-touch-icon" href="/ikony/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style id="css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+<style>
 :root{
-  --paper:#f6f7f9; --sheet:#ffffff; --ink:#15171c; --muted:#6a7080; --line:#e4e6ec; --soft:#f0f2f6;
-  --accent:#2c44c9; --accent-ink:#ffffff; --accent-soft:#e9ecfb; --danger:#c23b3b; --ok:#1f8a55;
-  --shadow:0 1px 2px rgba(20,24,40,.05),0 8px 30px rgba(20,24,40,.06);
+  color-scheme:light dark;
+  --bg:#f3f4f8; --surface:#ffffff; --surface-2:#f7f8fb; --ink:#0c0f1d; --ink-2:#2b3045; --muted:#6b7186; --faint:#9aa0b4;
+  --line:#e5e7ef; --line-2:#eef0f5;
+  --accent:#4f5bf2; --accent-2:#7c4dff; --accent-ink:#fff; --accent-soft:#eceefe;
+  --ok:#14955f; --ok-soft:#e3f6ec; --warn:#b26a00; --warn-soft:#fff3dc; --danger:#d23f4a; --danger-soft:#fdecee;
+  --hero-1:#0b1030; --hero-2:#1d2a78; --hero-3:#5b3fd6;
+  --shadow-sm:0 1px 2px rgba(16,20,40,.06);
+  --shadow:0 1px 2px rgba(16,20,40,.05),0 12px 32px -12px rgba(16,20,40,.12);
+  --shadow-lg:0 30px 80px -20px rgba(12,15,40,.35);
+  --r:18px; --r-sm:12px;
+  --mono:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){
+@media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --paper:#0e1015; --sheet:#171a21; --ink:#eceef3; --muted:#9097a8; --line:#2a2e38; --soft:#1e222b;
-    --accent:#7d8ff5; --accent-ink:#0e1015; --accent-soft:#232a4a; --danger:#ef7b7b; --ok:#5fcf97;
-    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 30px rgba(0,0,0,.25);
+    --bg:#07080f; --surface:#10121d; --surface-2:#151827; --ink:#eef0f8; --ink-2:#cdd1e2; --muted:#8e94ab; --faint:#666c84;
+    --line:#22263a; --line-2:#1a1d2d;
+    --accent:#8790ff; --accent-2:#a98bff; --accent-ink:#0b0d1a; --accent-soft:#1d2142;
+    --ok:#4fd39a; --ok-soft:#10291f; --warn:#f0b454; --warn-soft:#2b210f; --danger:#ff7c86; --danger-soft:#2d1418;
+    --hero-1:#0a0d24; --hero-2:#18216a; --hero-3:#4b32b8;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 32px -12px rgba(0,0,0,.5);
   }
 }
-:root[data-theme="dark"]{
-  --paper:#0e1015; --sheet:#171a21; --ink:#eceef3; --muted:#9097a8; --line:#2a2e38; --soft:#1e222b;
-  --accent:#7d8ff5; --accent-ink:#0e1015; --accent-soft:#232a4a; --danger:#ef7b7b; --ok:#5fcf97;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 30px rgba(0,0,0,.25);
-}
+:root[data-theme="light"]{color-scheme:light}
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:14px 40px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
-.head{padding:28px 28px 22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}
-.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
-h1{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;font-weight:700;font-size:clamp(26px,5vw,34px);line-height:1.1;margin:6px 0 0;text-wrap:balance;letter-spacing:-.01em}
-.meta{display:grid;grid-template-columns:auto auto;gap:4px 16px;align-content:start;font-size:13.5px}
-.meta dt{color:var(--muted)}
-.meta dd{margin:0;font-weight:500;text-align:right}
-.meta dd input{text-align:right;min-width:150px}
-h1 input.h1in{font:inherit;font-family:inherit;color:inherit;padding:2px 6px;margin-left:-6px;width:100%;max-width:420px;border-color:var(--line)}
-@media (max-width:600px){
-  body{padding-inline:0}
-  .sheet,.bar{border-radius:0;border-left:0;border-right:0}
-  .panel{margin-inline:10px}
-  .wrap{gap:10px}
-}
-@media (max-width:560px){.meta dd input{text-align:left}}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}
-.stat{padding:14px 28px;display:flex;flex-direction:column;gap:2px}
-.stat+.stat{border-left:1px solid var(--line)}
-.stat b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--muted)}
-.grp+.grp{border-top:1px solid var(--line)}
-.grphead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;padding:20px 28px 10px}
-.grphead h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:17px;margin:0;letter-spacing:-.005em}
-.grphead .sub{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.tablebox{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-thead th{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--soft)}
-thead th:first-child,tbody td:first-child,tfoot td:first-child{padding-left:28px}
-thead th:last-child,tbody td:last-child,tfoot td:last-child{padding-right:28px}
-tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-tbody tr:hover td{background:var(--soft)}
-tfoot td{padding:12px 10px;font-weight:600;font-size:13.5px;border-top:1px solid var(--line)}
-.num{width:48px;color:var(--muted);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
-.price{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-th.price{font-family:inherit}
-.act{width:40px;text-align:right}
-.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13.5px}
-.total{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:22px 28px;background:var(--ink);color:var(--sheet)}
-.total .lbl{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;opacity:.75}
-.total .sum{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:clamp(26px,6vw,36px);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-input{font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 7px;width:100%}
-input:hover{border-color:var(--line)}
-input:focus{outline:none;border-color:var(--accent);background:var(--sheet);box-shadow:0 0 0 3px var(--accent-soft)}
-input.p{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;max-width:110px;margin-left:auto;display:block}
-button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:8px 13px;font-weight:500;display:inline-flex;align-items:center;gap:7px}
-button:hover{background:var(--soft)}
-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button svg{width:15px;height:15px;flex:none}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-button.primary:hover{filter:brightness(1.08)}
-button.primary:disabled{opacity:.45;cursor:default;filter:none}
-button.x{border:0;background:transparent;color:var(--muted);padding:4px 8px;font-size:18px;line-height:1}
-button.x:hover{color:var(--danger);background:transparent}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:var(--shadow)}
-.bar .status{font-size:13px;color:var(--muted)}
-.bar .status.dirty{color:var(--danger);font-weight:500}
-.bar .status.saved{color:var(--ok)}
-.bar .btns{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-.panel{background:var(--sheet);border:1px dashed var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
-.panel h2{margin:0;font-size:14px;font-weight:600}
-.panel h2 em{font-style:normal;color:var(--accent)}
-.row{display:flex;flex-wrap:wrap;gap:8px}
-.row input{border-color:var(--line);flex:1 1 200px}
-.row input.p{flex:0 0 110px;margin:0}
-textarea{font:13.5px/1.5 "IBM Plex Mono",ui-monospace,monospace;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-height:96px;resize:vertical}
-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;padding:0 0 calc(48px + env(safe-area-inset-bottom));min-height:100vh}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.num,.money{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+svg{flex:none}
+
+/* horní lišta */
+.top{position:sticky;top:0;z-index:30;backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+  background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+  padding:env(safe-area-inset-top) 0 0}
+.top-in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;min-height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;min-width:0}
+.brand img{width:30px;height:30px;border-radius:8px;box-shadow:var(--shadow-sm)}
+.brand span{overflow:hidden;text-overflow:ellipsis}
+.top-acts{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 0;display:flex;flex-direction:column;gap:18px}
+
+/* tlačítka */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:11px;padding:9px 14px;font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap;text-decoration:none;
+  box-shadow:var(--shadow-sm);transition:background .15s,border-color .15s,transform .1s,box-shadow .15s}
+.btn:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--surface-2)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,.iconbtn:focus-visible,.row-play:focus-visible,.card:focus-visible,.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:linear-gradient(135deg,#4f5bf2,#7c4dff);border-color:transparent;color:#fff;box-shadow:0 6px 18px -6px color-mix(in srgb,var(--accent) 70%,transparent)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent}
+.btn.ghost:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.btn.danger{color:var(--danger)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.iconbtn{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.iconbtn:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+.iconbtn.del:hover{color:var(--danger);background:var(--danger-soft)}
+.iconbtn svg{width:17px;height:17px}
+
+/* stav zveřejnění */
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.pill.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+.pill.busy{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.pill.busy i{animation:pulse 1s ease-in-out infinite}
+.pill.err{color:var(--danger);background:var(--danger-soft);border-color:transparent}
+.pill.live i{box-shadow:0 0 0 0 currentColor;animation:ring 2.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+@keyframes ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 55%,transparent)}70%,100%{box-shadow:0 0 0 7px transparent}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:24px;color:#fff;padding:30px 30px 26px;
+  background:radial-gradient(120% 140% at 100% 0%,var(--hero-3) 0%,transparent 55%),radial-gradient(90% 120% at 0% 100%,#0e6b8f55 0%,transparent 60%),linear-gradient(140deg,var(--hero-1),var(--hero-2));
+  box-shadow:var(--shadow-lg)}
+.hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(120deg,transparent 30%,#000 100%);-webkit-mask-image:linear-gradient(120deg,transparent 30%,#000 100%);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;opacity:.7}
+.hero h1{margin:8px 0 0;font-size:clamp(28px,5.4vw,46px);line-height:1.05;letter-spacing:-.035em;font-weight:700}
+.hero h1 input{all:unset;width:100%;font:inherit;letter-spacing:inherit;border-radius:10px;padding:2px 6px;margin-left:-6px;cursor:text}
+.hero h1 input:hover{background:rgba(255,255,255,.08)}
+.hero h1 input:focus{background:rgba(255,255,255,.12);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:13.5px;color:rgba(255,255,255,.78)}
+.hero-meta b{color:#fff;font-weight:500}
+.hero-meta label{display:flex;align-items:center;gap:6px}
+.hero-meta input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:#fff;border-radius:8px;padding:4px 8px;width:150px;outline:none}
+.hero-meta input::placeholder{color:rgba(255,255,255,.45)}
+.hero-meta input:focus{border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.16)}
+.hero-total{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:28px}
+.big{font-family:var(--mono);font-weight:600;font-size:clamp(34px,7vw,58px);line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.big small{font-size:.42em;letter-spacing:0;opacity:.7;margin-left:6px;font-family:Geist,sans-serif;font-weight:500}
+.big-lbl{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px 12px;min-width:120px}
+.chip b{display:block;font-family:var(--mono);font-weight:500;font-size:16px;font-variant-numeric:tabular-nums}
+.chip span{font-size:12px;color:rgba(255,255,255,.7)}
+
+/* přepínač */
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:4px;gap:2px;box-shadow:var(--shadow-sm);align-self:flex-start}
+.seg button{border:0;background:transparent;border-radius:9px;padding:7px 14px;font-weight:500;font-size:14px;color:var(--muted);cursor:pointer;display:flex;gap:7px;align-items:center}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.seg svg{width:16px;height:16px}
+.seg .cnt{font-family:var(--mono);font-size:12px;opacity:.7}
+
+/* skupiny a řádky */
+.group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.ghead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line-2)}
+.ghead h2{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.ghead h2 .badge{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.ghead .money{font-weight:500;color:var(--ink-2)}
+.rows{list-style:none;margin:0;padding:0}
+.vrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:10px 20px;border-bottom:1px solid var(--line-2);transition:background .12s}
+.vrow:last-child{border-bottom:0}
+.vrow.has-video{cursor:pointer}
+.vrow.has-video:hover{background:var(--surface-2)}
+.thumb{position:relative;width:76px;height:44px;border-radius:9px;overflow:hidden;flex:none;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,var(--surface-2)),color-mix(in srgb,var(--accent-2) 16%,var(--surface-2)));display:grid;place-items:center;color:var(--accent);border:1px solid var(--line)}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb .n{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.thumb .play{position:relative;width:26px;height:26px;border-radius:50%;background:rgba(10,12,25,.62);color:#fff;display:grid;place-items:center;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.25);transition:transform .15s}
+.thumb .play svg{width:12px;height:12px;margin-left:2px}
+.vrow.has-video:hover .play{transform:scale(1.12)}
+.thumb.empty{background:var(--surface-2)}
+.vname{min-width:0}
+.vname b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vname span{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.vname span svg{width:12px;height:12px}
+.vprice{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.gempty{padding:28px 20px;text-align:center;color:var(--muted);font-size:14px}
+
+/* editor řádek */
+.erow{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1fr) 110px 36px;align-items:center;gap:8px;padding:6px 14px 6px 20px;border-bottom:1px solid var(--line-2)}
+.erow:last-child{border-bottom:0}
+.erow:hover{background:var(--surface-2)}
+.erow .thumb{width:44px;height:30px;border-radius:7px;cursor:default}
+.erow .thumb.click{cursor:pointer}
+.erow .thumb .play{width:20px;height:20px}
+.erow .thumb .play svg{width:9px;height:9px}
+.field{width:100%;border:1px solid transparent;background:transparent;border-radius:9px;padding:7px 9px;outline:none;min-width:0}
+.field:hover{border-color:var(--line)}
+.field:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}
+.field.url{font-size:13px;color:var(--muted)}
+.field.url:focus{color:var(--ink)}
+.field.price{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.urlwrap{position:relative;display:flex;align-items:center}
+.urlwrap svg{position:absolute;left:9px;width:14px;height:14px;color:var(--faint);pointer-events:none}
+.urlwrap .field{padding-left:29px}
+
+/* přidání */
+.add{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 110px auto;gap:8px;padding:14px 20px;background:var(--surface-2);border-top:1px solid var(--line)}
+.add .field{background:var(--surface);border-color:var(--line)}
+.bulk{padding:0 20px 14px;background:var(--surface-2)}
+.bulk summary{cursor:pointer;color:var(--muted);font-size:13px;padding:2px 0;list-style:none;display:inline-flex;gap:6px;align-items:center}
+.bulk summary::-webkit-details-marker{display:none}
+.bulk summary:hover{color:var(--ink)}
+.bulk textarea{width:100%;min-height:110px;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;font:13px/1.55 var(--mono);outline:none;resize:vertical}
+.bulk textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.bulk .acts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
 .hint{font-size:12.5px;color:var(--muted);margin:0}
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:999px;font-size:13.5px;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;z-index:20;max-width:calc(100% - 32px);text-align:center}
+
+/* panely a karty */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 4px;font-size:15px;font-weight:600}
+.panel p{margin:0;color:var(--muted);font-size:13.5px;max-width:560px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:6px}
+.section-head h2{margin:0;font-size:20px;letter-spacing:-.02em;font-weight:600}
+.section-head span{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;overflow:hidden}
+.card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));box-shadow:var(--shadow),0 16px 40px -18px color-mix(in srgb,var(--accent) 45%,transparent)}
+.card .ct{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-.015em}
+.card .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.card .mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:600;font-size:15px;flex:none;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+.card .mark.arch{background:linear-gradient(135deg,#0f766e,#0e7490)}
+.card .amount{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.card .amount small{font-size:13px;font-family:Geist,sans-serif;color:var(--muted);letter-spacing:0;margin-left:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+.card .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line-2);padding-top:12px;margin-top:auto}
+.card .acts .iconbtn{margin-left:auto}
+.newcard{border-style:dashed;background:transparent;box-shadow:none;align-items:center;justify-content:center;color:var(--muted);min-height:190px;font-weight:500}
+.newcard:hover{color:var(--accent)}
+.newcard .plus{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:8px}
+.page-head h1{margin:4px 0 0;font-size:clamp(28px,5vw,40px);letter-spacing:-.035em;line-height:1.05}
+.page-head .eyebrow{color:var(--muted);opacity:1}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar .grow{flex:1}
+
+.footer-total{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:var(--surface);border-radius:var(--r);padding:20px 24px;box-shadow:var(--shadow-lg)}
+.footer-total .lbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;opacity:.7}
+.footer-total .money{font-size:clamp(24px,5vw,32px);font-weight:500;letter-spacing:-.03em}
+.updated{display:flex;justify-content:center;color:var(--muted);font-size:12.5px;gap:6px;align-items:center}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state h2{color:var(--ink);margin:0 0 6px;font-size:20px}
+
+/* dialogy */
+dialog{border:0;padding:0;background:transparent;color:var(--ink);max-width:100vw;max-height:100vh}
+dialog::backdrop{background:rgba(5,7,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+dialog[open]{animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.97)}}
+.player{width:min(960px,calc(100vw - 24px))}
+.player.vert{width:min(420px,calc(100vw - 24px))}
+.player-top{display:flex;align-items:center;gap:10px;color:#fff;padding:0 2px 10px}
+.player-top b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.player-top .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.18);color:#fff;box-shadow:none}
+.player-top .btn:hover{background:rgba(255,255,255,.2)}
+.player-box{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg)}
+.player.vert .player-box{aspect-ratio:9/16;max-height:calc(100vh - 110px);margin:0 auto}
+.player-box iframe,.player-box video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.player-box .ext{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#fff;padding:24px;gap:14px;align-content:center}
+.sheet{width:min(460px,calc(100vw - 24px));background:var(--surface);border-radius:22px;padding:24px;box-shadow:var(--shadow-lg)}
+.sheet h2{margin:0 0 6px;font-size:20px;letter-spacing:-.02em}
+.sheet p{margin:0 0 14px;color:var(--muted)}
+.sheet ol{margin:0 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.sheet li{display:flex;gap:12px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.sheet li .stepn{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;flex:none}
+.sheet li svg{width:18px;height:18px;color:var(--accent);vertical-align:-3px}
+.sheet textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:12px;font:13px/1.5 var(--mono);resize:vertical}
+.sheet .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,14px);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-dialog{border:1px solid var(--line);border-radius:14px;background:var(--sheet);color:var(--ink);padding:0;max-width:min(560px,calc(100vw - 32px));width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-dialog::backdrop{background:rgba(10,12,18,.45)}
-.dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
-.dlg h2{margin:0;font-size:16px}
-.dlg textarea{min-height:200px}
-.dlg .row{justify-content:flex-end}
-@media (max-width:560px){
-  .head{padding:22px 18px 18px}
-  .meta dd{text-align:left}
-  .stat{padding:12px 18px}
-  .grphead{padding:18px 18px 8px}
-  thead th:first-child,tbody td:first-child,tfoot td:first-child{padding-left:18px}
-  thead th:last-child,tbody td:last-child,tfoot td:last-child{padding-right:18px}
-  .total{padding:18px}
-  .num{display:none}
+
+@media (max-width:720px){
+  .hero{padding:24px 20px 20px;border-radius:20px}
+  .hero-total{margin-top:22px}
+  .chip{min-width:0;flex:1}
+  .vrow{padding:10px 14px;gap:12px}
+  .thumb{width:64px;height:38px}
+  .ghead{padding:14px}
+  .erow{grid-template-columns:36px minmax(0,1fr) 92px 32px;grid-template-areas:"t n p d" "t u u d";padding:8px 10px;row-gap:2px}
+  .erow .thumb{grid-area:t;width:36px;height:26px;align-self:start;margin-top:6px}
+  .erow .n{grid-area:n}.erow .urlwrap{grid-area:u}.erow .p{grid-area:p}.erow .iconbtn{grid-area:d;align-self:start}
+  .add{grid-template-columns:1fr 100px;padding:12px 14px}
+  .add .urlwrap{grid-column:1/-1;order:2}
+  .add .btn{grid-column:1/-1;order:3}
+  .bulk{padding:0 14px 12px}
+  .brand .full{display:none}
+  .top-acts .btn .lbl{display:none}
+  .footer-total{padding:16px 18px}
 }
 @media print{
-  body{background:#fff;padding:0}
-  .bar,.panel,.act,.toast{display:none!important}
-  .sheet{box-shadow:none;border:0}
-  .grp{break-inside:avoid}
-  tr{break-inside:avoid}
+  body{background:#fff;color:#000}
+  .top,.seg,.panel,.add,.bulk,.toolbar,.iconbtn,.card .acts,.updated{display:none!important}
+  .hero{box-shadow:none;color:#000;background:#fff;border:1px solid #ddd}
+  .hero::after{display:none}
+  .hero-meta,.big-lbl,.chip span{color:#444}
+  .chip{border-color:#ddd}
+  .group,.footer-total{box-shadow:none;break-inside:avoid}
+  .footer-total{background:#fff;color:#000;border:2px solid #000}
 }
-@media (prefers-reduced-motion:reduce){.toast{transition:none}}
-
-.home-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 2px}
-.home-head h1{margin:4px 0 0}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.card{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:10px;cursor:pointer}
-.card:hover{border-color:var(--accent)}
-.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card-top{display:flex;flex-direction:column;gap:2px}
-.card-top h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;font-size:18px;margin:0;letter-spacing:-.01em}
-.card-client{font-size:12.5px;color:var(--muted)}
-.card-sum{display:flex;align-items:baseline;gap:8px}
-.card-sum b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
-.card-sum span{font-size:12.5px;color:var(--muted)}
-.card-groups{display:flex;flex-wrap:wrap;gap:6px}
-.card-groups span{font-size:11.5px;color:var(--muted);background:var(--soft);border-radius:999px;padding:3px 9px}
-.card-acts{display:flex;gap:8px;align-items:center;margin-top:2px}
-.card-acts button{padding:6px 11px;font-size:13.5px}
-.card-acts .x{margin-left:auto;font-size:18px;padding:4px 8px}
-.bar #home{margin-right:auto}
-.arch{background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
-.arch+.arch{margin-top:10px}
-.arch>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;padding:16px 20px;font-weight:600}
-.arch>summary::-webkit-details-marker{display:none}
-.arch>summary:hover{background:var(--soft)}
-.arch>summary .when{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-size:16px}
-.arch>summary .what{font-size:12.5px;color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
-.arch[open]>summary{border-bottom:1px solid var(--line)}
-.arch .grphead{padding:14px 20px 6px}
-.arch thead th:first-child,.arch tbody td:first-child,.arch tfoot td:first-child{padding-left:20px}
-.arch thead th:last-child,.arch tbody td:last-child,.arch tfoot td:last-child{padding-right:20px}
-.arch-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 2px 2px}
-.arch-head h2{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-size:15px;margin:0}
-.arch-head span{font-size:12.5px;color:var(--muted)}
-.arch-del{margin-left:8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<style>:root{color-scheme:light dark}html,body{margin:0}</style>
 </head>
 <body>
-<script type="application/json" id="data">{"tables":[{"name":"Střih videí-AD","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://jachben.github.io/","archives":[],"publishedAt":"1791548791"}]}</script>
+<script type="application/json" id="data">{"tables":[{"name":"Střih videí-AD","client":"","editor":"","period":"","currency":"Kč","groups":[{"key":"reels","label":"Reels","items":[{"name":"Day 204","price":200},{"name":"Day 207","price":200},{"name":"Hlasovka – drž hubu","price":200},{"name":"O čem sníš","price":200},{"name":"Day 209","price":200},{"name":"Day 210 – budeš úspěšnej","price":200},{"name":"Day 211","price":200},{"name":"Day 212","price":200},{"name":"Day 213","price":200},{"name":"Day 214","price":200},{"name":"Day 215","price":200},{"name":"Day 216","price":200},{"name":"Day 217","price":200},{"name":"Day 218","price":200},{"name":"Day 219","price":200},{"name":"Day 220","price":200},{"name":"Day 221","price":200},{"name":"Day 222","price":200},{"name":"Day 223","price":200},{"name":"Day 224","price":200},{"name":"Day 225","price":200},{"name":"Život po vysvědčení","price":200},{"name":"Day 226","price":200},{"name":"Day 227","price":200},{"name":"Day 228","price":200},{"name":"Day 229","price":200},{"name":"Day 230","price":200},{"name":"Day 231","price":200},{"name":"Day 232","price":200},{"name":"Day 233","price":200},{"name":"Day 234","price":200},{"name":"Day 235","price":200},{"name":"Day 236","price":200},{"name":"Day 237","price":200},{"name":"Day 238","price":200},{"name":"Day 239","price":200},{"name":"Day 240","price":200},{"name":"Day 241","price":200},{"name":"Day 242","price":200},{"name":"Day 243 – rozhovor chata 1","price":200},{"name":"Day 244","price":200},{"name":"Day 245 – rozhovor chata 2","price":200},{"name":"Day 246","price":200},{"name":"Day 247 – rozhovor chata 3","price":200},{"name":"Day 248","price":200},{"name":"Day 249","price":200},{"name":"Day 250","price":200},{"name":"Day 251","price":200},{"name":"Day 252","price":200},{"name":"Day 253","price":200},{"name":"Day 254","price":200},{"name":"Day 255","price":200},{"name":"Day 256","price":200},{"name":"Day 257","price":200},{"name":"Day 258","price":200},{"name":"Day 259","price":200},{"name":"Day 260","price":200},{"name":"Day 261","price":200},{"name":"Day 262","price":200},{"name":"Day 263","price":200},{"name":"Day 264","price":200},{"name":"Day 265","price":200},{"name":"266","price":200},{"name":"267","price":200},{"name":"268","price":200},{"name":"269","price":200},{"name":"270","price":200},{"name":"271","price":200}]},{"key":"long","label":"Long-form videa","items":[{"name":"vlog chata","price":500},{"name":"vlog praha","price":800}]}],"id":"tmuyibxso687","shareUrl":"https://jachben.github.io/","archives":[],"publishedAt":"1791548791","sitePath":""}]}</script>
+<script>window.APP_MODE = 'client';</script>
 
-<div class="wrap" id="root"></div>
+<header class="top"><div class="top-in" id="top"></div></header>
+<main class="wrap" id="root"></main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<dialog id="copydlg"><form class="dlg" method="dialog"><h2>Zkopírujte text</h2><p class="hint">Označte text a zkopírujte ho (Cmd+C).</p><textarea id="copytext" readonly></textarea><div class="row"><button value="ok" class="primary" type="submit">Zavřít</button></div></form></dialog>
 
-<script id="app">
+<dialog id="playerdlg" aria-label="Přehrávač videa"><div class="player" id="player"></div></dialog>
+<dialog id="sheetdlg"><div class="sheet" id="sheet"></div></dialog>
+
+<script>
 (function(){
-  var ICON = {
-    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>',
-    print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="7" rx="2"/><path d="M7 16h10v5H7z"/></svg>',
-    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 16-5-5L5 20"/></svg>',
-    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
-    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-    globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>'
+  'use strict';
+  var MODE = window.APP_MODE === 'editor' ? 'editor' : 'client';
+  var EDIT = MODE === 'editor';
+
+  var I = {
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 7 4.8z"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="7" rx="2"/><path d="M7 16h10v5H7z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>',
+    addsq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>',
+    archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
   };
 
-  var MH = (window.webkit && window.webkit.messageHandlers) || null;
-  var native = !!(MH && MH.save);
-  function post(name, payload){
-    try { if (MH && MH[name]) { MH[name].postMessage(payload); return true; } } catch (e) {}
-    return false;
-  }
+  // ---------- data ----------
 
+  function uid(p){ return (p || 't') + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
-  function uid(){ return 't' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+  function emptyGroups(){ return [{ key: 'reels', label: 'Reels', items: [] }, { key: 'long', label: 'Long-form videa', items: [] }]; }
+  function normItem(it){
+    return { name: String(it.name || ''), price: (it.price === '' || it.price == null) ? '' : (Number(it.price) || 0), url: String(it.url || '').trim() };
+  }
+  function normGroups(gs){
+    return (gs && gs.length ? gs : emptyGroups()).map(function(g, gi){
+      return { key: g.key || ('g' + gi), label: g.label || 'Videa', items: (g.items || []).map(normItem) };
+    });
+  }
+  function normTable(t, i){
+    t = t || {};
+    return {
+      id: t.id || uid(), name: t.name || ('Tabulka ' + (i + 1)), client: t.client || '', editor: t.editor || '', period: t.period || '',
+      currency: t.currency || 'Kč', sitePath: t.sitePath == null ? null : t.sitePath, shareUrl: t.shareUrl || '',
+      updatedAt: t.updatedAt || 0, publishedAt: t.publishedAt || '',
+      groups: normGroups(t.groups),
+      archives: (t.archives || []).map(function(a, ai){ return { id: a.id || ('a' + ai), label: a.label || 'Archiv', closedAt: a.closedAt || 0, groups: normGroups(a.groups) }; })
+    };
+  }
+  function normalize(d){ return { tables: ((d && d.tables) || []).map(normTable) }; }
+
+  var state = normalize(JSON.parse(document.getElementById('data').textContent));
+
+  // ---------- pomocné ----------
 
   var MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
-  function monthLabel(){
-    var d = new Date();
-    return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
-  }
-
-  function emptyGroups(){
-    return [{ key: 'reels', label: 'Reels', items: [] },
-            { key: 'long', label: 'Long-form videa', items: [] }];
-  }
-
-  function normalizeTable(t, i){
-    t = t || {};
-    t.id = t.id || uid();
-    t.name = t.name || t.title || ('Tabulka ' + (i + 1));
-    t.client = t.client || '';
-    t.editor = t.editor || '';
-    t.period = t.period || '';
-    t.shareUrl = t.shareUrl || '';
-    t.publishedAt = t.publishedAt || '';
-    t.sitePath = t.sitePath || '';
-    t.currency = t.currency || 'Kč';
-    t.groups = (t.groups && t.groups.length) ? t.groups : emptyGroups();
-    t.archives = (t.archives || []).map(function(ar, ai){
-      ar.id = ar.id || ('a' + ai + Date.now().toString(36));
-      ar.label = ar.label || 'Archiv';
-      ar.groups = (ar.groups || []).map(function(g, gi){
-        g.key = g.key || ('g' + gi);
-        g.label = g.label || 'Videa';
-        g.items = (g.items || []).map(function(it){
-          return { name: String(it.name || ''), price: (it.price === '' || it.price == null) ? '' : (Number(it.price) || 0) };
-        });
-        return g;
-      });
-      return ar;
-    });
-    t.groups.forEach(function(g, gi){
-      g.key = g.key || ('g' + gi);
-      g.label = g.label || 'Videa';
-      g.items = (g.items || []).map(function(it){
-        return { name: String(it.name || ''), price: (it.price === '' || it.price == null) ? '' : (Number(it.price) || 0) };
-      });
-    });
-    return t;
-  }
-
-  function normalize(d){
-    d = d || {};
-    var tables;
-    if (d.tables && d.tables.length) tables = d.tables;
-    else if (d.groups) tables = [{ name: d.title || 'Střih videí', client: d.client, editor: d.editor, period: d.period, currency: d.currency, groups: d.groups }];
-    else tables = [{ name: 'Střih videí', groups: emptyGroups() }];
-    return { tables: tables.map(normalizeTable) };
-  }
-
-  var saved = normalize(JSON.parse(document.getElementById('data').textContent));
-  if (window.__SAVED__) saved = normalize(window.__SAVED__);
-  var state = clone(saved);
-
-  function loadClientCopy(){
-    try {
-      var t = state.tables[0]; if (!t) return;
-      var raw = localStorage.getItem('tabulka-klient-' + (t.sitePath || t.id || 'x'));
-      if (!raw) return;
-      var mine = JSON.parse(raw);
-      var theirs = mine.tables && mine.tables[0];
-      // majitel mezitím zveřejnil novější verzi → jeho data mají přednost
-      if (!theirs || theirs.publishedAt !== t.publishedAt) return;
-      state = normalize(mine);
-    } catch (e) {}
-  }
-
-  var openId = null, openArchId = null, exporting = false, statusMsg = '';
-  var VIEW_ONLY = true;
-  var root = document.getElementById('root');
-  var toastEl = document.getElementById('toast'), toastTimer = null;
-
-  try {
-    var last = sessionStorage.getItem('open-table');
-    if (last && findTable(last)) openId = last;
-  } catch (e) {}
-
-  function findTable(id){
-    for (var i = 0; i < state.tables.length; i++) if (state.tables[i].id === id) return state.tables[i];
-    return null;
-  }
-
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-  function num(n){ return (Math.round(n * 100) / 100).toLocaleString('cs-CZ').replace(/ /g, ' '); }
-  function fmt(t, n){ return num(n) + ' ' + t.currency; }
+  function monthLabel(){ var d = new Date(); return MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function num(n){ return (Math.round(n * 100) / 100).toLocaleString('cs-CZ').replace(/\s/g, ' '); }
+  function money(t, n){ return num(n) + ' ' + t.currency; }
   function sum(items){ return items.reduce(function(a, it){ return a + (Number(it.price) || 0); }, 0); }
-  function tableItems(t){ return t.groups.reduce(function(a, g){ return a.concat(g.items); }, []); }
-  function tableTotal(t){ return sum(tableItems(t)); }
+  function itemsOf(groups){ return groups.reduce(function(a, g){ return a.concat(g.items); }, []); }
   function videos(n){ return n === 1 ? 'video' : (n >= 2 && n <= 4 ? 'videa' : 'videí'); }
-
-  function viewKey(){
-    var t = state.tables[0] || {};
-    return 'tabulka-klient-' + (t.sitePath || t.id || 'x');
+  function months(n){ return n === 1 ? 'měsíc' : (n >= 2 && n <= 4 ? 'měsíce' : 'měsíců'); }
+  function parsePrice(v){ var n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; }
+  function initials(s){ var w = String(s).replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : '')).toUpperCase(); }
+  function when(ts){
+    if (!ts) return '';
+    var d = new Date(ts), now = new Date(), diff = (now - d) / 1000;
+    if (diff < 60) return 'právě teď';
+    if (diff < 3600) return 'před ' + Math.floor(diff / 60) + ' min';
+    var hm = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (d.toDateString() === now.toDateString()) return 'dnes v ' + hm;
+    return d.getDate() + '. ' + (d.getMonth() + 1) + '. v ' + hm;
+  }
+  function safeUrl(u){
+    u = String(u || '').trim(); if (!u) return '';
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    return u;
   }
 
-  function save(){
-    statusMsg = '';
-    if (VIEW_ONLY) {
-      try { localStorage.setItem(viewKey(), JSON.stringify(state)); } catch (e) {}
-      return;
+  // ---------- video ----------
+
+  function video(raw){
+    var u = safeUrl(raw); if (!u) return null;
+    var m, url;
+    try { url = new URL(u); } catch (e) { return null; }
+    var host = url.hostname.replace(/^www\.|^m\./, '');
+    if (host === 'youtu.be' || /(^|\.)youtube(-nocookie)?\.com$/.test(host)) {
+      var id = host === 'youtu.be' ? url.pathname.slice(1) : (url.searchParams.get('v') || ((m = url.pathname.match(/\/(shorts|embed|live|v)\/([\w-]{6,})/)) && m[2]));
+      if (id) {
+        id = id.split(/[/?&]/)[0];
+        return { kind: 'iframe', src: 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1',
+          thumb: 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg', vert: /\/shorts\//.test(url.pathname), src0: u, label: 'YouTube' };
+      }
     }
-    if (native && post('save', JSON.stringify(state))) return;
-    try { localStorage.setItem('tabulka-data', JSON.stringify(state)); } catch (e) {}
+    if (/(^|\.)vimeo\.com$/.test(host) && (m = url.pathname.match(/\/(?:video\/)?(\d+)(?:\/(\w+))?/))) {
+      var h = m[2] || url.searchParams.get('h');
+      return { kind: 'iframe', src: 'https://player.vimeo.com/video/' + m[1] + '?autoplay=1' + (h ? '&h=' + h : ''), src0: u, label: 'Vimeo' };
+    }
+    if (host === 'drive.google.com' || host === 'docs.google.com') {
+      var did = ((m = url.pathname.match(/\/d\/([\w-]{10,})/)) && m[1]) || url.searchParams.get('id');
+      if (did) return { kind: 'iframe', src: 'https://drive.google.com/file/d/' + did + '/preview', thumb: 'https://drive.google.com/thumbnail?id=' + did + '&sz=w400', src0: u, label: 'Google Drive' };
+    }
+    if (/(^|\.)dropbox\.com$/.test(host)) {
+      url.searchParams.delete('dl'); url.searchParams.set('raw', '1');
+      return { kind: 'video', src: url.toString(), src0: u, label: 'Dropbox' };
+    }
+    if (host === 'instagram.com' && (m = url.pathname.match(/\/(reels?|p|tv)\/([\w-]+)/))) {
+      return { kind: 'iframe', src: 'https://www.instagram.com/' + (m[1] === 'reels' ? 'reel' : m[1]) + '/' + m[2] + '/embed', vert: true, src0: u, label: 'Instagram' };
+    }
+    if (/(^|\.)tiktok\.com$/.test(host) && (m = url.pathname.match(/\/video\/(\d+)/))) {
+      return { kind: 'iframe', src: 'https://www.tiktok.com/embed/v2/' + m[1], vert: true, src0: u, label: 'TikTok' };
+    }
+    if (/\.(mp4|m4v|mov|webm|ogv)$/i.test(url.pathname)) return { kind: 'video', src: u, src0: u, label: 'Video' };
+    return { kind: 'link', src0: u, label: host };
   }
 
+  function thumbHtml(it, n, small){
+    var v = video(it.url);
+    if (!v) return '<div class="thumb empty"><span class="n">' + n + '</span></div>';
+    return '<div class="thumb' + (small ? ' click' : '') + '"' + (small ? ' data-play="1" title="Přehrát"' : '') + '>' +
+      (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
+      '<span class="play">' + (v.kind === 'link' ? I.ext : I.play) + '</span></div>';
+  }
+
+  var playerDlg = document.getElementById('playerdlg'), playerEl = document.getElementById('player');
+  function openPlayer(it){
+    var v = video(it.url); if (!v) return;
+    var body;
+    if (v.kind === 'iframe') body = '<iframe src="' + esc(v.src) + '" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    else if (v.kind === 'video') body = '<video src="' + esc(v.src) + '" controls autoplay playsinline></video>';
+    else body = '<div class="ext"><div style="font-size:15px;opacity:.85">Tohle video se otevře na stránce ' + esc(v.label) + '.</div>' +
+      '<a class="btn primary" href="' + esc(v.src0) + '" target="_blank" rel="noopener">' + I.ext + 'Otevřít video</a></div>';
+    playerEl.className = 'player' + (v.vert ? ' vert' : '');
+    playerEl.innerHTML = '<div class="player-top"><b>' + esc(it.name || 'Video') + '</b>' +
+      '<a class="btn sm" href="' + esc(v.src0) + '" target="_blank" rel="noopener">' + I.ext + '<span>Otevřít</span></a>' +
+      '<button class="btn sm" type="button" data-close>' + I.x + '<span>Zavřít</span></button></div>' +
+      '<div class="player-box">' + body + '</div>';
+    if (playerDlg.showModal) playerDlg.showModal(); else window.open(v.src0, '_blank');
+  }
+  playerDlg.addEventListener('close', function(){ playerEl.innerHTML = ''; });
+  playerDlg.addEventListener('click', function(e){
+    if (e.target === playerDlg || e.target.closest('[data-close]')) playerDlg.close();
+  });
+
+  var sheetDlg = document.getElementById('sheetdlg'), sheetEl = document.getElementById('sheet');
+  function openSheet(html){ sheetEl.innerHTML = html; sheetDlg.showModal ? sheetDlg.showModal() : null; }
+  sheetDlg.addEventListener('click', function(e){
+    if (e.target === sheetDlg || e.target.closest('[data-close]')) sheetDlg.close();
+  });
+
+  var toastEl = document.getElementById('toast'), toastT;
   function toast(msg){
     toastEl.textContent = msg; toastEl.classList.add('on');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 2600);
+    clearTimeout(toastT); toastT = setTimeout(function(){ toastEl.classList.remove('on'); }, 2600);
   }
-
-  function parsePrice(v){ var n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; }
-
-  // ---------- úvodní stránka se všemi tabulkami ----------
-
-  function renderHome(){
-    var h = '<header class="home-head"><div><div class="eyebrow">Moje tabulky</div><h1>Přehledy střihu</h1></div>' +
-      '<div class="btns">' + (native ? '<button id="publish" type="button">' + ICON.globe + 'Zveřejnit</button>' : '') +
-      '<button id="new" type="button" class="primary">' + ICON.plus + 'Nová tabulka</button></div></header>';
-
-    if (!state.tables.length) {
-      h += '<p class="hint" style="text-align:center;padding:40px 0">Zatím tu nic není. Založte první tabulku.</p>';
-      return h;
+  function copy(text, msg){
+    function fallback(){
+      openSheet('<h2>Zkopírujte text</h2><p>Označte ho a zkopírujte (Cmd+C).</p><textarea readonly>' + esc(text) + '</textarea>' +
+        '<div class="acts"><button class="btn primary" data-close>Hotovo</button></div>');
+      var ta = sheetEl.querySelector('textarea'); ta.focus(); ta.select();
     }
-
-    h += '<div class="cards">';
-    state.tables.forEach(function(t){
-      var n = tableItems(t).length;
-      h += '<article class="card" data-open="' + t.id + '" tabindex="0" role="button" aria-label="Otevřít ' + esc(t.name) + '">' +
-        '<div class="card-top"><h2>' + esc(t.name) + '</h2>' + (t.client ? '<span class="card-client">' + esc(t.client) + '</span>' : '') + '</div>' +
-        '<div class="card-sum"><b>' + esc(n ? fmt(t, tableTotal(t)) : '—') + '</b><span>' + n + ' ' + videos(n) + '</span></div>' +
-        '<div class="card-groups">' + t.groups.map(function(g){
-          return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>';
-        }).join('') + '</div>' +
-        '<div class="card-acts">' +
-          '<button type="button" data-open="' + t.id + '" class="primary">Otevřít</button>' +
-          (t.shareUrl ? '<button type="button" data-link="' + t.id + '">' + ICON.link + 'Odkaz</button>' : '') +
-          '<button type="button" data-del-table="' + t.id + '" class="x" title="Smazat tabulku" aria-label="Smazat tabulku ' + esc(t.name) + '">×</button>' +
-        '</div></article>';
-    });
-    h += '</div>';
-    h += '<p class="hint" style="text-align:center">Tuhle stránku vidíte jen vy. Klientovi posíláte vždycky jednu konkrétní tabulku.</p>';
-    return h;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){ toast(msg || 'Zkopírováno'); }, fallback);
+    else fallback();
   }
 
-  // ---------- jedna tabulka ----------
-
-  function metaRows(t, edit){
-    var fields = [['client', 'Klient', 'Jméno klienta'], ['editor', 'Střih', 'Vaše jméno'], ['period', 'Období', 'Období']];
-    if (edit) {
-      return fields.map(function(f){
-        return '<dt><label for="f-' + f[0] + '">' + esc(f[1]) + '</label></dt>' +
-          '<dd><input id="f-' + f[0] + '" data-meta="' + f[0] + '" value="' + esc(t[f[0]]) + '" placeholder="' + esc(f[2]) + '"></dd>';
-      }).join('');
-    }
-    return fields.filter(function(f){ return t[f[0]]; })
-      .map(function(f){ return '<dt>' + esc(f[1]) + '</dt><dd>' + esc(t[f[0]]) + '</dd>'; }).join('');
-  }
-
-  function renderTable(t){
-    var edit = !exporting && !VIEW_ONLY;
-    var items = tableItems(t), total = sum(items), n = items.length;
-    var h = '';
-
-    if (!exporting && !VIEW_ONLY) {
-      h += '<div class="bar">' +
-        '<button id="home" type="button">' + ICON.back + 'Všechny tabulky</button>' +
-        '<div class="btns">' +
-        (t.shareUrl ? '<button id="link" type="button" class="primary">' + ICON.link + 'Kopírovat odkaz</button>' : '') +
-        (native ? '<button id="publish" type="button">' + ICON.globe + 'Zveřejnit</button>' : '') +
-        '<button id="sharetext" type="button">' + ICON.copy + 'Kopírovat text</button>' +
-        '<button id="png" type="button">' + ICON.image + 'Obrázek</button>' +
-        '<button id="pdf" type="button">' + ICON.print + 'PDF</button>' +
-        '</div></div>';
-    }
-
-    h += '<article class="sheet"><header class="head"><div><div class="eyebrow">Přehled práce</div>' +
-      (edit ? '<h1><input id="f-name" class="h1in" data-meta="name" value="' + esc(t.name) + '" placeholder="Název tabulky" aria-label="Název tabulky"></h1>'
-            : '<h1>' + esc(t.name) + '</h1>') +
-      '</div>' + (metaRows(t, edit) ? '<dl class="meta">' + metaRows(t, edit) + '</dl>' : '') + '</header>';
-
-    h += '<div class="stats"><div class="stat"><b>' + n + '</b><span>' + videos(n) + ' celkem</span></div>';
-    t.groups.forEach(function(g){
-      h += '<div class="stat"><b>' + esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</b><span>' + esc(g.label.toLowerCase()) + ' (' + g.items.length + ')</span></div>';
-    });
-    h += '</div>';
-
-    t.groups.forEach(function(g, gi){
-      var st = sum(g.items);
-      h += '<section class="grp"><div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' +
-        (g.items.length ? g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, st) : 'zatím prázdné') + '</span></div>';
-      h += '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th>' + (edit ? '<th class="act"></th>' : '') + '</tr></thead><tbody>';
-      if (!g.items.length) h += '<tr><td class="empty" colspan="' + (edit ? 4 : 3) + '">Zatím žádná videa v této kategorii</td></tr>';
-      g.items.forEach(function(it, i){
-        h += '<tr><td class="num">' + (i + 1) + '</td>';
-        if (edit) {
-          h += '<td><input id="n-' + gi + '-' + i + '" data-g="' + gi + '" data-i="' + i + '" data-f="name" value="' + esc(it.name) + '" aria-label="Název videa"></td>' +
-            '<td class="price"><input id="p-' + gi + '-' + i + '" class="p" data-g="' + gi + '" data-i="' + i + '" data-f="price" inputmode="decimal" value="' + esc(it.price) + '" aria-label="Cena"></td>' +
-            '<td class="act"><button class="x" type="button" data-del="' + gi + '-' + i + '" title="Smazat" aria-label="Smazat ' + esc(it.name) + '">×</button></td>';
-        } else {
-          h += '<td>' + esc(it.name) + '</td><td class="price">' + esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td>';
-        }
-        h += '</tr>';
-      });
-      h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' +
-        esc(g.items.length ? fmt(t, st) : '—') + '</td>' + (edit ? '<td class="act"></td>' : '') + '</tr></tfoot></table></div></section>';
-    });
-
-    h += '<div class="total"><span class="lbl">Celkem k úhradě</span><span class="sum">' + esc(n ? fmt(t, total) : '—') + '</span></div></article>';
-
-    if (edit) {
-      t.groups.forEach(function(g, gi){
-        h += '<section class="panel"><h2>Přidat do <em>' + esc(g.label) + '</em></h2><div class="row">' +
-          '<input id="new-name-' + gi + '" data-add="' + gi + '" placeholder="Název videa" aria-label="Název nového videa">' +
-          '<input id="new-price-' + gi + '" class="p" data-addp="' + gi + '" inputmode="decimal" value="" aria-label="Cena nového videa">' +
-          '<button type="button" class="primary" data-addbtn="' + gi + '">Přidat</button></div>' +
-          '<textarea id="bulk-' + gi + '" aria-label="Víc videí najednou"></textarea>' +
-          '<div class="row"><button type="button" data-bulk="' + gi + '">Přidat všechny</button></div></section>';
-      });
-
-    }
-
-    if (VIEW_ONLY && !exporting && n) {
-      h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
-        '<p class="hint">Až bude měsíc vyfakturovaný, přesuňte videa do archivu. Zůstanou dole a kdykoliv se do nich podíváte. Dostanete i krátký text, který pošlete střihači, aby si měsíc uzavřel taky.</p>' +
-        '<div class="row"><button id="clientarchive" type="button" class="primary">Uzavřít měsíc (' + n + ' ' + videos(n) + ')</button></div></section>';
-    }
-
-    if (edit) {
-      h += '<section class="panel"><h2>Uzavřít měsíc</h2>' +
-        '<p class="hint">Všechna videa z tabulky se přesunou do archivu <strong>' + esc(monthLabel()) + '</strong> a tabulka začne znovu od nuly. Archiv zůstane dole, takže se kdykoliv podíváte, co už je hotové.</p>' +
-        '<div class="row"><button id="archive" type="button" class="primary"' + (n ? '' : ' disabled') + '>Archivovat ' + n + ' ' + videos(n) + '</button></div></section>';
-    }
-
-    if (t.archives.length) {
-      h += '<div class="arch-head"><h2>Archiv</h2><span>' + t.archives.length + ' ' + (t.archives.length === 1 ? 'měsíc' : (t.archives.length <= 4 ? 'měsíce' : 'měsíců')) + '</span></div>';
-      h += '<div class="cards">';
-      t.archives.forEach(function(ar){
-        var aitems = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
-        h += '<article class="card" data-arch="' + ar.id + '" tabindex="0" role="button" aria-label="Otevřít archiv ' + esc(ar.label) + '">' +
-          '<div class="card-top"><h2>' + esc(ar.label) + '</h2><span class="card-client">uzavřený měsíc</span></div>' +
-          '<div class="card-sum"><b>' + esc(fmt(t, sum(aitems))) + '</b><span>' + aitems.length + ' ' + videos(aitems.length) + '</span></div>' +
-          '<div class="card-groups">' + ar.groups.map(function(g){ return '<span>' + esc(g.label) + ': ' + g.items.length + '</span>'; }).join('') + '</div>' +
-          '<div class="card-acts"><button type="button" data-arch="' + ar.id + '" class="primary">Otevřít</button>' +
-          (edit ? '<button type="button" class="x" data-del-arch="' + ar.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(ar.label) + '">×</button>' : '') +
-          '</div></article>';
-      });
-      h += '</div>';
-    }
-
-    return h;
-  }
-
-  function renderArchive(t, ar){
-    var items = ar.groups.reduce(function(acc, g){ return acc.concat(g.items); }, []);
-    var h = '';
-    if (!exporting) {
-      h += '<div class="bar"><button id="backtable" type="button">' + ICON.back + 'Zpět do tabulky</button>' +
-        '<div class="btns"><button id="archtext" type="button">' + ICON.copy + 'Kopírovat text</button></div></div>';
-    }
-    h += '<article class="sheet"><header class="head"><div><div class="eyebrow">Uzavřený měsíc</div><h1>' + esc(ar.label) + '</h1></div>' +
-      '<dl class="meta"><dt>Tabulka</dt><dd>' + esc(t.name) + '</dd>' +
-      (t.client ? '<dt>Klient</dt><dd>' + esc(t.client) + '</dd>' : '') + '</dl></header>';
-
-    h += '<div class="stats"><div class="stat"><b>' + items.length + '</b><span>' + videos(items.length) + ' celkem</span></div>';
-    ar.groups.forEach(function(g){
-      h += '<div class="stat"><b>' + esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</b><span>' + esc(g.label.toLowerCase()) + ' (' + g.items.length + ')</span></div>';
-    });
-    h += '</div>';
-
-    ar.groups.forEach(function(g){
-      h += '<section class="grp"><div class="grphead"><h2>' + esc(g.label) + '</h2><span class="sub">' +
-        (g.items.length ? g.items.length + ' ' + videos(g.items.length) + ' · ' + fmt(t, sum(g.items)) : 'zatím prázdné') + '</span></div>' +
-        '<div class="tablebox"><table><thead><tr><th class="num">#</th><th>Video</th><th class="price">Cena</th></tr></thead><tbody>';
-      if (!g.items.length) h += '<tr><td class="empty" colspan="3">V téhle kategorii nebylo nic</td></tr>';
-      g.items.forEach(function(it, i){
-        h += '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(it.name) + '</td><td class="price">' +
-          esc(it.price === '' ? '—' : fmt(t, Number(it.price) || 0)) + '</td></tr>';
-      });
-      h += '</tbody><tfoot><tr><td class="num"></td><td>Mezisoučet — ' + esc(g.label) + '</td><td class="price">' +
-        esc(g.items.length ? fmt(t, sum(g.items)) : '—') + '</td></tr></tfoot></table></div></section>';
-    });
-
-    h += '<div class="total"><span class="lbl">Celkem za ' + esc(ar.label) + '</span><span class="sum">' + esc(fmt(t, sum(items))) + '</span></div></article>';
-    return h;
-  }
-
-  function findArchive(t, id){
-    var found = null;
-    if (t) t.archives.forEach(function(a){ if (a.id === id) found = a; });
-    return found;
-  }
-
-  function render(){
-    var t = openId ? findTable(openId) : null;
-    var active = document.activeElement && document.activeElement.id;
-    var pos = active && document.activeElement.selectionStart;
-    var ar = openArchId ? findArchive(t, openArchId) : null;
-    root.innerHTML = ar ? renderArchive(t, ar) : (t ? renderTable(t) : renderHome());
-    if (active) {
-      var el = document.getElementById(active);
-      if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (e) {} }
-    }
-  }
-
-  // ---------- akce ----------
-
-  function openArchive(id){
-    openArchId = id; render(); window.scrollTo(0, 0);
-  }
-
-  function openTable(id){
-    openArchId = null;
-    openId = id;
-    try { sessionStorage.setItem('open-table', id); } catch (e) {}
-    render();
-    window.scrollTo(0, 0);
-  }
-
-  function goHome(){
-    openId = null; openArchId = null;
-    try { sessionStorage.removeItem('open-table'); } catch (e) {}
-    render();
-    window.scrollTo(0, 0);
-  }
-
-  function addOne(gi){
-    var t = findTable(openId); if (!t) return;
-    var ni = document.getElementById('new-name-' + gi), pi = document.getElementById('new-price-' + gi);
-    var name = ni.value.trim(); if (!name) { ni.focus(); return; }
-    t.groups[gi].items.push({ name: name, price: pi.value.trim() === '' ? '' : parsePrice(pi.value) });
-    save(); render();
-    var again = document.getElementById('new-name-' + gi);
-    if (again) { again.value = ''; again.focus(); }
-  }
-
-  function archiveNow(t){
-    var items = tableItems(t);
-    if (!items.length) { toast('Tabulka je prázdná, není co archivovat'); return; }
-    var label = monthLabel();
-    var same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
-    if (same) label = label + ' (' + (same + 1) + ')';
-    if (!window.confirm('Přesunout ' + items.length + ' ' + videos(items.length) + ' do archivu „' + label + '“? Tabulka se vyprázdní.')) return;
-    t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
-    t.groups.forEach(function(g){ g.items = []; });
-    save(); render();
-    toast('Hotovo — videa najdete dole v archivu ' + label);
-  }
-
-  function clientArchive(t){
-    var items = tableItems(t);
-    if (!items.length) return;
-    var label = monthLabel();
-    var same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
-    if (same) label = label + ' (' + (same + 1) + ')';
-    if (!window.confirm('Přesunout ' + items.length + ' ' + videos(items.length) + ' do archivu „' + label + '“?')) return;
-    var total = sum(items);
-    t.archives.unshift({ id: uid(), label: label, groups: clone(t.groups) });
-    t.groups.forEach(function(g){ g.items = []; });
-    save(); render();
-    showCopyDialog('Uzavřel jsem měsíc ' + label + ' u tabulky „' + t.name + '“: ' +
-      items.length + ' ' + videos(items.length) + ', ' + fmt(t, total) + '. ' +
-      'Můžeš to archivovat i u sebe v aplikaci.');
-  }
-
-  function summary(t){
-    var lines = [t.name];
+  function summary(t, groups, title){
+    var lines = [title || t.name];
     if (t.client) lines.push('Klient: ' + t.client);
-    if (t.period) lines.push('Období: ' + t.period);
+    if (t.period && !title) lines.push('Období: ' + t.period);
     lines.push('');
-    t.groups.forEach(function(g){
-      lines.push(g.label.toUpperCase() + ' — ' + g.items.length + ' ' + videos(g.items.length) + ', ' + fmt(t, sum(g.items)));
-      g.items.forEach(function(it, i){ lines.push('  ' + (i + 1) + '. ' + it.name + (it.price === '' ? '' : ' — ' + fmt(t, Number(it.price) || 0))); });
+    groups.forEach(function(g){
+      lines.push(g.label.toUpperCase() + ' — ' + g.items.length + ' ' + videos(g.items.length) + ', ' + money(t, sum(g.items)));
+      g.items.forEach(function(it, i){ lines.push('  ' + (i + 1) + '. ' + it.name + (it.price === '' ? '' : ' — ' + money(t, Number(it.price) || 0)) + (it.url ? '  ' + safeUrl(it.url) : '')); });
       lines.push('');
     });
-    var items = tableItems(t);
-    lines.push('CELKEM: ' + items.length + ' ' + videos(items.length) + ' — ' + fmt(t, sum(items)));
-    return lines.join('\n');
+    var all = itemsOf(groups);
+    lines.push('CELKEM: ' + all.length + ' ' + videos(all.length) + ' — ' + money(t, sum(all)));
+    if (t.shareUrl && !title) lines.push('', 'Online přehled: ' + t.shareUrl);
+    return lines.join('\n').replace(/ /g, ' ');
   }
 
-  function copy(text, msg){
-    msg = msg || 'Zkopírováno';
-    if (native && post('copyText', text)) { toast(msg); return; }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ showCopyDialog(text); });
-    } else showCopyDialog(text);
+  // ---------- společné bloky ----------
+
+  function hero(t, groups, opts){
+    var all = itemsOf(groups), n = all.length, h = '<section class="hero">';
+    h += '<div class="eyebrow">' + esc(opts.eyebrow) + '</div>';
+    if (opts.editName) h += '<h1><input id="f-name" data-meta="name" value="' + esc(t.name) + '" placeholder="Název tabulky" aria-label="Název tabulky"></h1>';
+    else h += '<h1>' + esc(opts.title || t.name) + '</h1>';
+    if (opts.editName) {
+      h += '<div class="hero-meta">' +
+        [['client', 'Klient', 'jméno klienta'], ['editor', 'Střih', 'vaše jméno'], ['period', 'Období', 'např. říjen']].map(function(f){
+          return '<label>' + f[1] + ' <input id="f-' + f[0] + '" data-meta="' + f[0] + '" value="' + esc(t[f[0]]) + '" placeholder="' + f[2] + '"></label>';
+        }).join('') + '</div>';
+    } else {
+      var meta = (opts.meta || [['Klient', t.client], ['Střih', t.editor], ['Období', t.period]]).filter(function(m){ return m[1]; });
+      if (meta.length) h += '<div class="hero-meta">' + meta.map(function(m){ return '<span>' + esc(m[0]) + ' <b>' + esc(m[1]) + '</b></span>'; }).join('') + '</div>';
+    }
+    h += '<div class="hero-total"><div><div class="big-lbl">' + esc(opts.totalLabel) + '</div><div class="big">' + (n ? num(sum(all)) + '<small>' + esc(t.currency) + '</small>' : '—') + '</div></div>';
+    h += '<div class="chips"><div class="chip"><b>' + n + '</b><span>' + videos(n) + ' celkem</span></div>' +
+      groups.map(function(g){ return '<div class="chip"><b>' + (g.items.length ? money(t, sum(g.items)) : '—') + '</b><span>' + esc(g.label) + ' · ' + g.items.length + '</span></div>'; }).join('') + '</div></div>';
+    return h + '</section>';
   }
 
-  function showCopyDialog(text){
-    var dlg = document.getElementById('copydlg'), ta = document.getElementById('copytext');
-    ta.value = text;
-    if (navigator.clipboard && navigator.clipboard.writeText) { try { navigator.clipboard.writeText(text); } catch (e) {} }
-    if (dlg.showModal) { dlg.showModal(); ta.focus(); ta.select(); }
-    else toast('Kopírování zde není povolené');
+  function groupView(t, g, emptyMsg){
+    var h = '<section class="group"><div class="ghead"><h2>' + esc(g.label) + ' <span class="badge">' + g.items.length + '</span></h2>' +
+      '<span class="money">' + (g.items.length ? money(t, sum(g.items)) : '') + '</span></div>';
+    if (!g.items.length) return h + '<div class="gempty">' + esc(emptyMsg) + '</div></section>';
+    h += '<ul class="rows">';
+    g.items.forEach(function(it, i){
+      var v = video(it.url);
+      h += '<li class="vrow' + (v ? ' has-video' : '') + '"' + (v ? ' data-video="' + i + '" tabindex="0" role="button" aria-label="Přehrát ' + esc(it.name) + '"' : '') + '>' +
+        thumbHtml(it, i + 1) +
+        '<div class="vname"><b>' + esc(it.name || 'Bez názvu') + '</b>' + (v ? '<span>' + I.play + (v.kind === 'link' ? 'Otevřít video' : 'Přehrát video') + '</span>' : '') + '</div>' +
+        '<div class="vprice">' + (it.price === '' ? '—' : money(t, Number(it.price) || 0)) + '</div></li>';
+    });
+    return h + '</ul></section>';
   }
+
+  function archiveCards(t, edit){
+    var h = '<div class="cards">';
+    t.archives.forEach(function(a){
+      var all = itemsOf(a.groups);
+      h += '<article class="card" data-arch="' + a.id + '" tabindex="0" role="button" aria-label="Otevřít ' + esc(a.label) + '">' +
+        '<div class="ct"><div><h3>' + esc(a.label) + '</h3><div class="sub">Uzavřený měsíc</div></div><div class="mark arch">' + I.archive.replace('<svg', '<svg width="20" height="20"') + '</div></div>' +
+        '<div class="amount">' + num(sum(all)) + '<small>' + esc(t.currency) + '</small></div>' +
+        '<div class="tags"><span class="tag">' + all.length + ' ' + videos(all.length) + '</span>' + a.groups.map(function(g){ return '<span class="tag">' + esc(g.label) + ' · ' + g.items.length + '</span>'; }).join('') + '</div>' +
+        '<div class="acts"><button class="btn sm" type="button" data-arch="' + a.id + '">' + I.eye + 'Zobrazit</button>' +
+        (edit ? '<button class="iconbtn del" type="button" data-del-arch="' + a.id + '" title="Smazat archiv" aria-label="Smazat archiv ' + esc(a.label) + '">' + I.trash + '</button>' : '') +
+        '</div></article>';
+    });
+    return h + '</div>';
+  }
+
+  function archiveView(t, a){
+    var h = '<div class="toolbar"><button class="btn" type="button" data-back-arch>' + I.back + 'Zpět</button><span class="grow"></span>' +
+      '<button class="btn" type="button" data-copy-arch="' + a.id + '">' + I.copy + '<span>Kopírovat přehled</span></button></div>';
+    h += hero(t, a.groups, { eyebrow: 'Historie · uzavřený měsíc', title: a.label, meta: [['Tabulka', t.name], ['Klient', t.client]], totalLabel: 'Celkem za ' + a.label });
+    a.groups.forEach(function(g){ h += groupView(t, g, 'V téhle kategorii nebylo nic'); });
+    h += '<div class="footer-total"><span class="lbl">Celkem za ' + esc(a.label) + '</span><span class="money">' + money(t, sum(itemsOf(a.groups))) + '</span></div>';
+    return h;
+  }
+
+  var ui = { openId: null, archId: null, tab: null };
+  function findTable(id){ for (var i = 0; i < state.tables.length; i++) if (state.tables[i].id === id) return state.tables[i]; return null; }
+  function findArch(t, id){ return t ? t.archives.filter(function(a){ return a.id === id; })[0] || null : null; }
+
+  // ================= KLIENT =================
+
+  var installEvt = null;
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var lastFetch = 0;
+
+  function clientTop(t){
+    var h = '<div class="brand"><img src="/ikony/icon-192.png" alt=""><span>' + esc(t ? t.name : 'Přehled střihu') + '</span></div><div class="top-acts">';
+    h += '<span class="pill live ok" title="Data se načítají vždy aktuální"><i></i>Aktuální</span>';
+    if (!isStandalone) h += '<button class="btn primary sm" type="button" id="install">' + I.down + '<span class="lbl">Stáhnout aplikaci</span></button>';
+    return h + '</div>';
+  }
+
+  function renderClient(){
+    var t = state.tables[0];
+    document.getElementById('top').innerHTML = clientTop(t);
+    var root = document.getElementById('root');
+    if (!t) { root.innerHTML = '<div class="empty-state"><h2>Tahle tabulka už není k dispozici</h2><p>Zeptejte se prosím na nový odkaz.</p></div>'; return; }
+    document.title = t.name;
+    var a = findArch(t, ui.archId);
+    if (a) { root.innerHTML = archiveView(t, a); return; }
+    var h = hero(t, t.groups, { eyebrow: 'Přehled práce', totalLabel: 'Celkem k úhradě' });
+    if (!ui.tab) ui.tab = (!itemsOf(t.groups).length && t.archives.length) ? 'hist' : 'now';
+    if (t.archives.length) {
+      h += '<div class="seg" role="group" aria-label="Zobrazení">' +
+        '<button type="button" data-tab="now" aria-pressed="' + (ui.tab === 'now') + '">' + I.list + 'Aktuální <span class="cnt">' + itemsOf(t.groups).length + '</span></button>' +
+        '<button type="button" data-tab="hist" aria-pressed="' + (ui.tab === 'hist') + '">' + I.archive + 'Historie <span class="cnt">' + t.archives.length + '</span></button></div>';
+    }
+    if (ui.tab === 'hist' && t.archives.length) {
+      h += '<div class="section-head"><h2>Historie</h2><span>' + t.archives.length + ' ' + months(t.archives.length) + ' · ' + money(t, t.archives.reduce(function(s, a){ return s + sum(itemsOf(a.groups)); }, 0)) + '</span></div>';
+      h += archiveCards(t, false);
+    } else {
+      t.groups.forEach(function(g){ h += groupView(t, g, 'Zatím tu nejsou žádná videa'); });
+      var all = itemsOf(t.groups);
+      h += '<div class="footer-total"><span class="lbl">Celkem k úhradě</span><span class="money">' + (all.length ? money(t, sum(all)) : '—') + '</span></div>';
+    }
+    h += '<div class="updated">' + I.refresh.replace('<svg', '<svg width="13" height="13"') + 'Naposledy upraveno ' + esc(when(t.updatedAt || Number(t.publishedAt) * 1000) || '—') + '</div>';
+    root.innerHTML = h;
+  }
+
+  function refreshClient(force){
+    if (!force && Date.now() - lastFetch < 15000) return;
+    lastFetch = Date.now();
+    fetch('data.json?v=' + Date.now(), { cache: 'no-store' }).then(function(r){ if (!r.ok) throw r; return r.json(); }).then(function(d){
+      var fresh = normalize(d);
+      if (JSON.stringify(fresh) === JSON.stringify(state)) return;
+      state = fresh;
+      if (ui.archId && !findArch(state.tables[0], ui.archId)) ui.archId = null;
+      render();
+    }).catch(function(){});
+  }
+
+  function installHelp(){
+    if (installEvt) {
+      installEvt.prompt();
+      installEvt.userChoice.then(function(c){ if (c.outcome === 'accepted') toast('Aplikace se instaluje'); installEvt = null; });
+      return;
+    }
+    if (isIOS) {
+      openSheet('<h2>Stáhnout do iPhonu</h2><p>Na iPhonu to jde jen přes Safari, zabere to 5 vteřin:</p><ol>' +
+        '<li><span class="stepn">1</span><span>Dole klepněte na ' + I.share + ' <b>Sdílet</b></span></li>' +
+        '<li><span class="stepn">2</span><span>Vyberte ' + I.addsq + ' <b>Přidat na plochu</b></span></li>' +
+        '<li><span class="stepn">3</span><span>Klepněte na <b>Přidat</b>. Hotovo, ikona je na ploše.</span></li></ol>' +
+        '<div class="acts"><button class="btn primary" data-close>Rozumím</button></div>');
+      return;
+    }
+    openSheet('<h2>Stáhnout aplikaci</h2><p>V menu prohlížeče (⋮ vpravo nahoře) zvolte <b>Instalovat aplikaci</b> nebo <b>Přidat na plochu</b>.</p>' +
+      '<div class="acts"><button class="btn primary" data-close>Rozumím</button></div>');
+  }
+
+  // ================= EDITOR =================
+
+  var pub = { state: 'idle', at: 0, error: '' };
+  var saveTimer = null, renderTimer = null;
+
+  function editorTop(){
+    var p = pub.state === 'publishing' ? '<span class="pill busy"><i></i>Zveřejňuji…</span>'
+      : pub.state === 'pending' ? '<span class="pill busy"><i></i>Ukládám na web…</span>'
+      : pub.state === 'error' ? '<span class="pill err" title="' + esc(pub.error) + '"><i></i>Web se nepodařilo obnovit</span>'
+      : pub.state === 'offline' ? '<span class="pill err"><i></i>Aplikace neběží</span>'
+      : '<span class="pill ok"><i></i>Na webu ' + esc(pub.at ? when(pub.at) : 'aktuální') + '</span>';
+    return '<div class="brand"><img src="/ikony/icon-192.png" alt=""><span>Tabulka střihu</span></div><div class="top-acts">' + p +
+      (pub.state === 'error' ? '<button class="btn sm" type="button" id="publish">' + I.refresh + '<span class="lbl">Zkusit znovu</span></button>' : '') + '</div>';
+  }
+
+  function renderHome(){
+    var h = '<div class="page-head"><div><div class="eyebrow">Moje tabulky</div><h1>Přehledy střihu</h1></div></div><div class="cards">';
+    state.tables.forEach(function(t){
+      var all = itemsOf(t.groups);
+      h += '<article class="card" data-open="' + t.id + '" tabindex="0" role="button" aria-label="Otevřít ' + esc(t.name) + '">' +
+        '<div class="ct"><div style="min-width:0"><h3>' + esc(t.name) + '</h3><div class="sub">' + esc(t.client || (t.archives.length ? t.archives.length + ' ' + months(t.archives.length) + ' v historii' : 'Aktuální měsíc')) + '</div></div><div class="mark">' + esc(initials(t.name)) + '</div></div>' +
+        '<div class="amount">' + (all.length ? num(sum(all)) : '0') + '<small>' + esc(t.currency) + '</small></div>' +
+        '<div class="tags"><span class="tag">' + all.length + ' ' + videos(all.length) + '</span>' + t.groups.map(function(g){ return '<span class="tag">' + esc(g.label) + ' · ' + g.items.length + '</span>'; }).join('') + '</div>' +
+        '<div class="acts"><button class="btn sm primary" type="button" data-open="' + t.id + '">Otevřít</button>' +
+        (t.shareUrl ? '<button class="btn sm" type="button" data-link="' + t.id + '">' + I.link + 'Odkaz</button>' : '<span class="hint">Odkaz se připravuje…</span>') +
+        '<button class="iconbtn del" type="button" data-del-table="' + t.id + '" title="Smazat tabulku" aria-label="Smazat tabulku ' + esc(t.name) + '">' + I.trash + '</button></div></article>';
+    });
+    h += '<button class="card newcard" type="button" id="new"><span class="plus">' + I.plus + '</span>Nová tabulka</button></div>';
+    h += '<p class="hint" style="text-align:center">Tuhle stránku vidíte jen vy. Klient dostane odkaz vždy jen na svou tabulku a uvidí v ní aktuální stav.</p>';
+    return h;
+  }
+
+  function editRow(t, g, gi, it, i){
+    return '<div class="erow">' + thumbHtml(it, i + 1, true).replace('<div class="thumb', '<div data-g="' + gi + '" data-i="' + i + '" class="thumb') +
+      '<input class="field n" id="n-' + gi + '-' + i + '" data-g="' + gi + '" data-i="' + i + '" data-f="name" value="' + esc(it.name) + '" placeholder="Název videa" aria-label="Název videa">' +
+      '<div class="urlwrap">' + I.link + '<input class="field url" id="u-' + gi + '-' + i + '" data-g="' + gi + '" data-i="' + i + '" data-f="url" value="' + esc(it.url) + '" placeholder="Odkaz na video" aria-label="Odkaz na video" inputmode="url"></div>' +
+      '<input class="field price p" id="p-' + gi + '-' + i + '" data-g="' + gi + '" data-i="' + i + '" data-f="price" value="' + esc(it.price) + '" inputmode="decimal" placeholder="Cena" aria-label="Cena">' +
+      '<button class="iconbtn del" type="button" data-del="' + gi + '-' + i + '" title="Smazat" aria-label="Smazat ' + esc(it.name) + '">' + I.x + '</button></div>';
+  }
+
+  function renderEditTable(t){
+    var all = itemsOf(t.groups), n = all.length;
+    var h = '<div class="toolbar"><button class="btn" type="button" id="home">' + I.back + 'Všechny tabulky</button><span class="grow"></span>' +
+      (t.shareUrl ? '<button class="btn primary" type="button" data-link="' + t.id + '">' + I.link + 'Kopírovat odkaz</button>' +
+        '<a class="btn" href="' + esc(t.shareUrl) + '" target="_blank" rel="noopener">' + I.eye + '<span>Jak to vidí klient</span></a>' : '') +
+      '<button class="btn" type="button" id="sharetext">' + I.copy + '<span>Text</span></button>' +
+      '<button class="btn" type="button" id="pdf">' + I.print + '<span>PDF</span></button></div>';
+    h += hero(t, t.groups, { eyebrow: 'Přehled práce', editName: true, totalLabel: 'Celkem k úhradě' });
+
+    t.groups.forEach(function(g, gi){
+      h += '<section class="group"><div class="ghead"><h2>' + esc(g.label) + ' <span class="badge">' + g.items.length + '</span></h2><span class="money">' + (g.items.length ? money(t, sum(g.items)) : '') + '</span></div>';
+      h += g.items.length ? g.items.map(function(it, i){ return editRow(t, g, gi, it, i); }).join('') : '<div class="gempty">Zatím žádná videa</div>';
+      h += '<div class="add"><input class="field" id="new-name-' + gi + '" data-add="' + gi + '" placeholder="Název nového videa" aria-label="Název nového videa">' +
+        '<div class="urlwrap">' + I.link + '<input class="field" id="new-url-' + gi + '" data-add="' + gi + '" placeholder="Odkaz na video (nepovinné)" aria-label="Odkaz na nové video" inputmode="url"></div>' +
+        '<input class="field price" id="new-price-' + gi + '" data-add="' + gi + '" inputmode="decimal" placeholder="Cena" aria-label="Cena nového videa" value="' + esc(lastPrice(g)) + '">' +
+        '<button class="btn primary" type="button" data-addbtn="' + gi + '">' + I.plus + 'Přidat</button></div>' +
+        '<details class="bulk"><summary>' + I.list.replace('<svg', '<svg width="14" height="14"') + 'Přidat víc videí najednou</summary>' +
+        '<textarea id="bulk-' + gi + '" placeholder="Day 272 – 200&#10;Day 273 – 200 – https://youtu.be/…&#10;vlog Brno – 800"></textarea>' +
+        '<div class="acts"><span class="hint">Jedno video na řádek: název – cena – odkaz (cena a odkaz nepovinné)</span><button class="btn sm" type="button" data-bulk="' + gi + '">Přidat všechny</button></div></details></section>';
+    });
+
+    h += '<div class="footer-total"><span class="lbl">Celkem k úhradě</span><span class="money">' + (n ? money(t, sum(all)) : '—') + '</span></div>';
+    h += '<div class="panel"><div><h3>Uzavřít měsíc</h3><p>Videa se přesunou do historie <b>' + esc(monthLabel()) + '</b> a tabulka začne od nuly. Klient uvidí uzavřený měsíc v záložce Historie.</p></div>' +
+      '<button class="btn primary" type="button" id="archive"' + (n ? '' : ' disabled') + '>' + I.archive + 'Uzavřít ' + n + ' ' + videos(n) + '</button></div>';
+    if (t.archives.length) {
+      h += '<div class="section-head"><h2>Historie</h2><span>' + t.archives.length + ' ' + months(t.archives.length) + '</span></div>' + archiveCards(t, true);
+    }
+    return h;
+  }
+
+  function lastPrice(g){ for (var i = g.items.length - 1; i >= 0; i--) if (g.items[i].price !== '') return g.items[i].price; return ''; }
+
+  function touch(t){ if (t) t.updatedAt = Date.now(); }
+
+  function save(now){
+    clearTimeout(saveTimer);
+    function go(){
+      fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) })
+        .then(function(r){ return r.json(); }).then(applyStatus).catch(function(){ pub.state = 'offline'; renderTop(); });
+    }
+    pub.state = 'pending'; renderTop();
+    if (now) go(); else saveTimer = setTimeout(go, 500);
+  }
+
+  function applyStatus(s){
+    if (!s) return;
+    pub.state = s.state; pub.at = s.at ? s.at * 1000 : 0; pub.error = s.error || '';
+    var changed = false;
+    (s.links || []).forEach(function(l){
+      var t = findTable(l.id);
+      if (t && (t.shareUrl !== l.shareUrl || t.sitePath !== l.sitePath)) { t.shareUrl = l.shareUrl; t.sitePath = l.sitePath; changed = true; }
+    });
+    if (changed) scheduleRender(true); else renderTop();
+    clearTimeout(pollT);
+    pollT = setTimeout(poll, pub.state === 'ok' || pub.state === 'error' ? 15000 : 2000);
+  }
+  var pollT;
+  function poll(){ fetch('/status', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(applyStatus).catch(function(){ pub.state = 'offline'; renderTop(); pollT = setTimeout(poll, 5000); }); }
+
+  function scheduleRender(now){ clearTimeout(renderTimer); if (now) render(); else renderTimer = setTimeout(render, 350); }
+
+  function addOne(gi){
+    var t = findTable(ui.openId); if (!t) return;
+    var ni = document.getElementById('new-name-' + gi), ui2 = document.getElementById('new-url-' + gi), pi = document.getElementById('new-price-' + gi);
+    var name = ni.value.trim();
+    if (!name) { ni.focus(); toast('Napište název videa'); return; }
+    t.groups[gi].items.push({ name: name, url: ui2.value.trim(), price: pi.value.trim() === '' ? '' : parsePrice(pi.value) });
+    touch(t); save(); render();
+    var again = document.getElementById('new-name-' + gi); if (again) again.focus();
+  }
+
+  function addBulk(gi){
+    var t = findTable(ui.openId), ta = document.getElementById('bulk-' + gi), added = 0;
+    ta.value.split(/\n/).forEach(function(l){
+      l = l.trim(); if (!l) return;
+      var url = '', m = l.match(/(https?:\/\/\S+|www\.\S+)/i);
+      if (m) { url = m[1]; l = l.replace(m[1], '').trim(); }
+      l = l.replace(/[\s–—-]+$/, '').trim();
+      var pm = l.match(/^(.*?)[\s:–—-]+(\d[\d\s]*(?:[.,]\d+)?)\s*(?:kč|czk)?$/i);
+      if (pm && pm[1].trim()) t.groups[gi].items.push({ name: pm[1].trim(), price: parsePrice(pm[2]), url: url });
+      else if (l) t.groups[gi].items.push({ name: l, price: lastPrice(t.groups[gi]), url: url });
+      else return;
+      added++;
+    });
+    if (!added) { toast('Nic k přidání'); return; }
+    touch(t); save(); render(); toast('Přidáno ' + added + ' ' + videos(added));
+  }
+
+  function closeMonth(t){
+    var all = itemsOf(t.groups); if (!all.length) return;
+    var label = monthLabel(), same = t.archives.filter(function(a){ return a.label.indexOf(label) === 0; }).length;
+    if (same) label += ' (' + (same + 1) + ')';
+    if (!confirm('Přesunout ' + all.length + ' ' + videos(all.length) + ' do historie „' + label + '“? Tabulka začne od nuly.')) return;
+    t.archives.unshift({ id: uid('a'), label: label, closedAt: Date.now(), groups: clone(t.groups) });
+    t.groups.forEach(function(g){ g.items = []; });
+    touch(t); save(true); render(); toast('Měsíc uzavřen — najdete ho v historii');
+  }
+
+  // ================= vykreslení =================
+
+  function renderTop(){ document.getElementById('top').innerHTML = EDIT ? editorTop() : clientTop(state.tables[0]); }
+
+  function render(){
+    if (!EDIT) { renderClient(); return; }
+    var act = document.activeElement, aid = act && act.id, s1 = null, s2 = null;
+    try { if (aid) { s1 = act.selectionStart; s2 = act.selectionEnd; } } catch (e) {}
+    renderTop();
+    var t = findTable(ui.openId), a = findArch(t, ui.archId), root = document.getElementById('root');
+    root.innerHTML = a ? archiveView(t, a) : (t ? renderEditTable(t) : renderHome());
+    document.title = t ? t.name + ' · Tabulka střihu' : 'Tabulka střihu';
+    if (aid) { var el = document.getElementById(aid); if (el) { el.focus({ preventScroll: true }); try { if (s1 != null) el.setSelectionRange(s1, s2); } catch (e) {} } }
+  }
+
+  function go(fn){ fn(); render(); window.scrollTo(0, 0); }
+  function openTable(id){ go(function(){ ui.openId = id; ui.archId = null; try { sessionStorage.setItem('open', id); } catch (e) {} }); }
+
+  // ================= události =================
+
+  var root = document.getElementById('root');
 
   root.addEventListener('input', function(e){
-    var el = e.target, t = findTable(openId);
-    if (!t) return;
+    if (!EDIT) return;
+    var el = e.target, t = findTable(ui.openId); if (!t) return;
     if (el.dataset.f) {
       var it = t.groups[+el.dataset.g].items[+el.dataset.i];
-      if (el.dataset.f === 'name') it.name = el.value; else it.price = el.value.trim() === '' ? '' : parsePrice(el.value);
-      save(); render();
-    } else if (el.dataset.meta) {
-      t[el.dataset.meta] = el.value; save(); render();
-    }
+      if (el.dataset.f === 'price') it.price = el.value.trim() === '' ? '' : parsePrice(el.value); else it[el.dataset.f] = el.value;
+    } else if (el.dataset.meta) t[el.dataset.meta] = el.value;
+    else return;
+    touch(t); save(); scheduleRender();
   });
 
   root.addEventListener('keydown', function(e){
     if (e.key !== 'Enter') return;
-    var gi = e.target.dataset.add || e.target.dataset.addp;
-    if (gi != null) { e.preventDefault(); addOne(+gi); return; }
-    var card = e.target.closest && e.target.closest('[data-open]');
-    if (card && e.target === card) { e.preventDefault(); openTable(card.dataset.open); }
+    if (e.target.dataset.add != null) { e.preventDefault(); addOne(+e.target.dataset.add); return; }
+    var r = e.target.closest('[data-video],[data-open],[data-arch]');
+    if (r && r === e.target) { e.preventDefault(); r.click(); }
   });
 
   root.addEventListener('click', function(e){
-    var b = e.target.closest('button');
-    var t = findTable(openId);
-
-    if (b) {
-      if (b.dataset.open) { openTable(b.dataset.open); return; }
-      if (b.dataset.arch) { openArchive(b.dataset.arch); return; }
-      if (b.id === 'backtable') { openArchId = null; render(); window.scrollTo(0, 0); return; }
-      if (b.id === 'archtext') {
-        var art = findArchive(t, openArchId);
-        if (art) copy(summary({ name: t.name + ' — ' + art.label, client: t.client, period: art.label,
-                                currency: t.currency, groups: art.groups }), 'Přehled zkopírován');
-        return;
-      }
-      if (b.dataset.link) {
-        var lt = findTable(b.dataset.link);
-        if (lt) copy(lt.shareUrl, 'Odkaz zkopírován — vložte ho do chatu');
-        return;
-      }
-      if (b.dataset.delTable) {
-        var dt = findTable(b.dataset.delTable);
-        if (dt && window.confirm('Opravdu smazat tabulku „' + dt.name + '“? Tahle akce se nedá vrátit.')) {
-          state.tables = state.tables.filter(function(x){ return x.id !== dt.id; });
-          save(); render();
-        }
-        return;
-      }
-      if (b.id === 'new') {
-        var nt = normalizeTable({ name: 'Nová tabulka', groups: emptyGroups() }, state.tables.length);
-        state.tables.push(nt); save(); openTable(nt.id);
-        setTimeout(function(){ var f = document.getElementById('f-name'); if (f) { f.focus(); f.select(); } }, 30);
-        return;
-      }
-      if (b.id === 'home') { goHome(); return; }
-      if (!t) return;
-      if (b.id === 'publish') { if (post('publish', '')) toast('Zveřejňuji na web…'); return; }
-      if (b.id === 'archive') { archiveNow(t); return; }
-      if (b.id === 'clientarchive') { clientArchive(t); return; }
-      if (b.dataset.delArch) {
-        var ar = null;
-        t.archives.forEach(function(x){ if (x.id === b.dataset.delArch) ar = x; });
-        if (ar && window.confirm('Opravdu smazat archiv „' + ar.label + '“? Tahle akce se nedá vrátit.')) {
-          t.archives = t.archives.filter(function(x){ return x.id !== ar.id; });
-          save(); render();
-        }
-        return;
-      }
-      if (b.id === 'link') { copy(t.shareUrl, 'Odkaz zkopírován — vložte ho do chatu'); return; }
-      if (b.id === 'sharetext') { copy(summary(t), 'Přehled zkopírován'); return; }
-      if (b.id === 'png') { if (post('savePNG', '')) toast('Ukládám obrázek na plochu…'); return; }
-      if (b.id === 'pdf') { if (post('savePDF', '')) toast('Ukládám PDF na plochu…'); else window.print(); return; }
-      if (b.dataset.del != null) {
-        var p = b.dataset.del.split('-');
-        t.groups[+p[0]].items.splice(+p[1], 1); save(); render(); return;
-      }
-      if (b.dataset.addbtn != null) { addOne(+b.dataset.addbtn); return; }
-      if (b.dataset.bulk != null) {
-        var gi = +b.dataset.bulk, ta = document.getElementById('bulk-' + gi);
-        ta.value.split(/\n/).forEach(function(l){
-          l = l.trim(); if (!l) return;
-          var m = l.match(/^(.*?)\s*[–—-]?\s*(\d[\d\s]*(?:[.,]\d+)?)\s*(?:kč|czk)?\s*$/i);
-          if (m && m[1].trim()) t.groups[gi].items.push({ name: m[1].replace(/[:\s–—-]+$/, '').trim(), price: parsePrice(m[2]) });
-          else t.groups[gi].items.push({ name: l.replace(/[:\s]+$/, ''), price: '' });
-        });
-        save(); render(); return;
-      }
+    var t = findTable(ui.openId) || (!EDIT ? state.tables[0] : null);
+    var b = e.target.closest('button,[data-video],[data-open],[data-arch],[data-play]');
+    if (!b || b.tagName === 'A') return;
+    var d = b.dataset;
+    if (d.tab) { ui.tab = d.tab; render(); return; }
+    if (d.delArch && t) {
+      var da = findArch(t, d.delArch);
+      if (da && confirm('Smazat historii „' + da.label + '“? Tohle nejde vrátit.')) { t.archives = t.archives.filter(function(x){ return x !== da; }); touch(t); save(true); render(); }
       return;
     }
-
-    var card = e.target.closest('.card');
-    if (card && card.dataset.open) openTable(card.dataset.open);
-    else if (card && card.dataset.arch) openArchive(card.dataset.arch);
+    if (d.arch) { go(function(){ ui.archId = d.arch; }); return; }
+    if (d.backArch != null) { go(function(){ ui.archId = null; }); return; }
+    if (d.copyArch && t) { var ca = findArch(t, d.copyArch); copy(summary(t, ca.groups, t.name + ' — ' + ca.label), 'Přehled zkopírován'); return; }
+    if (d.video != null) {
+      var g = b.closest('.group'), gi = Array.prototype.indexOf.call(root.querySelectorAll('.group'), g);
+      var a = findArch(t, ui.archId), groups = a ? a.groups : t.groups;
+      openPlayer(groups[gi].items[+d.video]); return;
+    }
+    if (!EDIT) return;
+    if (d.play) { openPlayer(t.groups[+d.g].items[+d.i]); return; }
+    if (d.link) { var lt = findTable(d.link); if (lt && lt.shareUrl) copy(lt.shareUrl, 'Odkaz zkopírován — pošlete ho klientovi'); return; }
+    if (d.open) { openTable(d.open); return; }
+    if (d.delTable) {
+      var dt = findTable(d.delTable);
+      if (dt && confirm('Opravdu smazat tabulku „' + dt.name + '“? Klientovi přestane fungovat odkaz.')) { state.tables = state.tables.filter(function(x){ return x !== dt; }); save(true); render(); }
+      return;
+    }
+    if (b.id === 'new') {
+      var nt = normTable({ name: 'Nová tabulka' }, state.tables.length); nt.updatedAt = Date.now();
+      state.tables.push(nt); save(true); openTable(nt.id);
+      setTimeout(function(){ var f = document.getElementById('f-name'); if (f) { f.focus(); f.select(); } }, 30);
+      return;
+    }
+    if (b.id === 'home') { go(function(){ ui.openId = null; ui.archId = null; try { sessionStorage.removeItem('open'); } catch (e) {} }); return; }
+    if (!t) return;
+    if (b.id === 'archive') { closeMonth(t); return; }
+    if (b.id === 'sharetext') { copy(summary(t, t.groups), 'Přehled zkopírován'); return; }
+    if (b.id === 'pdf') { window.print(); return; }
+    if (d.del) {
+      var p = d.del.split('-'), it = t.groups[+p[0]].items[+p[1]];
+      if (it.name && !confirm('Smazat „' + it.name + '“?')) return;
+      t.groups[+p[0]].items.splice(+p[1], 1); touch(t); save(); render(); return;
+    }
+    if (d.addbtn != null) { addOne(+d.addbtn); return; }
+    if (d.bulk != null) { addBulk(+d.bulk); return; }
   });
 
-  window.__setExport = function(){};
-  var __unused = function(on){
-    if (on) { exporting = true; document.documentElement.setAttribute('data-theme', 'light'); }
-    else { exporting = false; document.documentElement.removeAttribute('data-theme'); }
-    render();
-  };
+  document.getElementById('top').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'install') installHelp();
+    if (b.id === 'publish') fetch('/publish', { method: 'POST' }).then(function(r){ return r.json(); }).then(applyStatus);
+  });
 
-  loadClientCopy();
-  openId = (state.tables[0] && state.tables[0].id) || null;
-  render();
+  // ================= start =================
+
+  if (EDIT) {
+    try { var last = sessionStorage.getItem('open'); if (last && findTable(last)) ui.openId = last; } catch (e) {}
+    render(); poll();
+  } else {
+    render();
+    window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); installEvt = e; });
+    window.addEventListener('appinstalled', function(){ isStandalone = true; renderTop(); toast('Aplikace je na ploše'); });
+    if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
+      refreshClient(true);
+      document.addEventListener('visibilitychange', function(){ if (!document.hidden) refreshClient(); });
+      window.addEventListener('focus', function(){ refreshClient(); });
+      setInterval(function(){ if (!document.hidden) refreshClient(true); }, 60000);
+    }
+  }
 })();
 </script>
-
 </body>
 </html>
