@@ -283,7 +283,7 @@ dialog[open]{animation:pop .18s ease-out}
 </style>
 </head>
 <body>
-<script type="application/json" id="data">{"tables":[{"id":"tmuyih3p4z6","name":"krystek.kuba","client":"","editor":"","period":"","currency":"Kč","sitePath":"krystek","shareUrl":"https://jachben.github.io/krystek/","updatedAt":1792866730801,"publishedAt":"1791548791","groups":[{"key":"reels","label":"Reels","items":[{"name":"Reels- sluchátka","url":"https://www.instagram.com/p/DerqI5YJjyS/","price":250}]},{"key":"long","label":"Long-form videa","items":[{"name":"Vlog chata","url":"https://www.youtube.com/watch?v=P1pwR61eQTs","price":500}]}],"archives":[]}]}</script>
+<script type="application/json" id="data">{"tables":[{"id":"tmuyih3p4z6","name":"krystek.kuba","client":"","editor":"","period":"","currency":"Kč","sitePath":"krystek","shareUrl":"https://jachben.github.io/krystek/","updatedAt":1792866730801,"publishedAt":"1791548791","groups":[{"key":"reels","label":"Reels","items":[{"name":"Reels- sluchátka","url":"https://www.instagram.com/p/DerqI5YJjyS/","price":250}]},{"key":"long","label":"Long-form videa","items":[{"name":"Vlog chata","url":"https://www.youtube.com/watch?v=P1pwR61eQTs","price":500}]}],"archives":[]}],"thumbs":{"https://www.instagram.com/p/DerqI5YJjyS/":"/nahledy/ig-DerqI5YJjyS.jpg"},"noembed":["https://www.instagram.com/p/DerqI5YJjyS/"]}</script>
 <script>window.APP_MODE = 'client';</script>
 
 <header class="top"><div class="top-in" id="top"></div></header>
@@ -343,7 +343,10 @@ dialog[open]{animation:pop .18s ease-out}
   }
   function normalize(d){ return { tables: ((d && d.tables) || []).map(normTable) }; }
 
-  var state = normalize(JSON.parse(document.getElementById('data').textContent));
+  var initial = JSON.parse(document.getElementById('data').textContent);
+  var state = normalize(initial);
+  var THUMBS = initial.thumbs || {}; // odkaz na video → stažený náhled (Instagram, TikTok, Vimeo)
+  var NOEMBED = initial.noembed || []; // videa, u kterých autor vypnul přehrávání na jiných webech
 
   // ---------- pomocné ----------
 
@@ -401,6 +404,7 @@ dialog[open]{animation:pop .18s ease-out}
       return { kind: 'video', src: url.toString(), src0: u, label: 'Dropbox' };
     }
     if (host === 'instagram.com' && (m = url.pathname.match(/\/(reels?|p|tv)\/([\w-]+)/))) {
+      if (NOEMBED.indexOf(String(raw).trim()) >= 0) return { kind: 'link', src0: u, label: 'Instagramu' };
       return { kind: 'iframe', src: 'https://www.instagram.com/' + (m[1] === 'reels' ? 'reel' : m[1]) + '/' + m[2] + '/embed', vert: true, src0: u, label: 'Instagram' };
     }
     if (/(^|\.)tiktok\.com$/.test(host) && (m = url.pathname.match(/\/video\/(\d+)/))) {
@@ -413,8 +417,9 @@ dialog[open]{animation:pop .18s ease-out}
   function thumbHtml(it, n, small){
     var v = video(it.url);
     if (!v) return '<div class="thumb empty"><span class="n">' + n + '</span></div>';
+    var src = THUMBS[String(it.url).trim()] || v.thumb;
     return '<div class="thumb' + (small ? ' click' : '') + '"' + (small ? ' data-play="1" title="Přehrát"' : '') + '>' +
-      (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
+      (src ? '<img src="' + esc(src) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
       '<span class="play">' + (v.kind === 'link' ? I.ext : I.play) + '</span></div>';
   }
 
@@ -585,9 +590,9 @@ dialog[open]{animation:pop .18s ease-out}
     if (!force && Date.now() - lastFetch < 15000) return;
     lastFetch = Date.now();
     fetch('data.json?v=' + Date.now(), { cache: 'no-store' }).then(function(r){ if (!r.ok) throw r; return r.json(); }).then(function(d){
-      var fresh = normalize(d);
-      if (JSON.stringify(fresh) === JSON.stringify(state)) return;
-      state = fresh;
+      var fresh = normalize(d), thumbs = d.thumbs || {}, noembed = d.noembed || [];
+      if (JSON.stringify(fresh) === JSON.stringify(state) && JSON.stringify(thumbs) === JSON.stringify(THUMBS) && JSON.stringify(noembed) === JSON.stringify(NOEMBED)) return;
+      state = fresh; THUMBS = thumbs; NOEMBED = noembed;
       if (ui.archId && !findArch(state.tables[0], ui.archId)) ui.archId = null;
       render();
     }).catch(function(){});
@@ -699,6 +704,8 @@ dialog[open]{animation:pop .18s ease-out}
     if (!s) return;
     pub.state = s.state; pub.at = s.at ? s.at * 1000 : 0; pub.error = s.error || '';
     var changed = false;
+    if (s.thumbs && JSON.stringify(s.thumbs) !== JSON.stringify(THUMBS)) { THUMBS = s.thumbs; changed = true; }
+    if (s.noembed && JSON.stringify(s.noembed) !== JSON.stringify(NOEMBED)) { NOEMBED = s.noembed; changed = true; }
     (s.links || []).forEach(function(l){
       var t = findTable(l.id);
       if (t && (t.shareUrl !== l.shareUrl || t.sitePath !== l.sitePath)) { t.shareUrl = l.shareUrl; t.sitePath = l.sitePath; changed = true; }

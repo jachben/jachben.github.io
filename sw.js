@@ -1,7 +1,7 @@
 // Tabulka střihu – service worker.
 // Stránky a data jdou vždy nejdřív ze sítě (klient vidí aktuální stav),
 // uložená kopie se použije jen bez internetu.
-const CACHE = 'tabulka-v2';
+const CACHE = 'tabulka-v3';
 const STATIC = ['/ikony/icon-192.png', '/ikony/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (e) => {
   if (url.origin === location.origin) {
     if (req.mode === 'navigate' || url.pathname.endsWith('/data.json') || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
       e.respondWith(networkFirst(req));
-    } else if (url.pathname.startsWith('/ikony/')) {
+    } else if (url.pathname.startsWith('/ikony/') || url.pathname.startsWith('/nahledy/')) {
       e.respondWith(cacheFirst(req));
     }
   } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
