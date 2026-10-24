@@ -248,6 +248,22 @@ dialog[open]{animation:pop .18s ease-out}
 .sheet li svg{width:18px;height:18px;color:var(--accent);vertical-align:-3px}
 .sheet textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:12px;font:13px/1.5 var(--mono);resize:vertical}
 .sheet .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.welcome{text-align:center;padding:30px 24px 22px}
+.welcome .appicon{width:88px;height:88px;border-radius:22px;box-shadow:0 14px 34px -10px rgba(40,40,140,.55);margin:0 auto 16px;display:block}
+.welcome .eyebrow{color:var(--muted);opacity:1}
+.welcome h2{font-size:26px;margin:6px 0 8px}
+.welcome p{margin:0 auto 18px;max-width:340px}
+.welcome .perks{list-style:none;padding:0;margin:0 0 20px;text-align:left;display:flex;flex-direction:column;gap:8px}
+.welcome .perks li{display:flex;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.welcome .perks svg{width:18px;height:18px;color:var(--accent)}
+.welcome .btn{width:100%;padding:13px 16px;font-size:15px}
+.welcome .btn+.btn{margin-top:8px}
+.welcome ol{text-align:left}
+.installbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 12px 12px 14px;box-shadow:var(--shadow)}
+.installbar img{width:42px;height:42px;border-radius:11px}
+.installbar div{flex:1;min-width:0;font-size:13.5px;line-height:1.35}
+.installbar b{display:block;font-size:14.5px}
+.installbar span{color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,14px);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -446,6 +462,9 @@ dialog[open]{animation:pop .18s ease-out}
   var sheetDlg = document.getElementById('sheetdlg'), sheetEl = document.getElementById('sheet');
   function openSheet(html){ sheetEl.innerHTML = html; sheetDlg.showModal ? sheetDlg.showModal() : null; }
   sheetDlg.addEventListener('click', function(e){
+    if (e.target.closest('[data-install]')) { sheetDlg.close(); installHelp(); return; }
+    var cp = e.target.closest('[data-copy],[data-copy-msg]');
+    if (cp) { copy(cp.dataset.copy || document.getElementById('sharemsg').value, cp.dataset.copy ? 'Odkaz zkopírován' : 'Zpráva zkopírována — vložte ji klientovi do chatu'); sheetDlg.close(); return; }
     if (e.target === sheetDlg || e.target.closest('[data-close]')) sheetDlg.close();
   });
 
@@ -567,7 +586,7 @@ dialog[open]{animation:pop .18s ease-out}
     document.title = t.name;
     var a = findArch(t, ui.archId);
     if (a) { root.innerHTML = archiveView(t, a); return; }
-    var h = hero(t, t.groups, { eyebrow: 'Přehled práce', totalLabel: 'Celkem k úhradě' });
+    var h = hero(t, t.groups, { eyebrow: 'Přehled práce', totalLabel: 'Celkem k úhradě' }) + installBar();
     if (!ui.tab) ui.tab = (!itemsOf(t.groups).length && t.archives.length) ? 'hist' : 'now';
     if (t.archives.length) {
       h += '<div class="seg" role="group" aria-label="Zobrazení">' +
@@ -598,6 +617,36 @@ dialog[open]{animation:pop .18s ease-out}
     }).catch(function(){});
   }
 
+  var IOS_STEPS = '<ol>' +
+    '<li><span class="stepn">1</span><span>Dole v Safari klepněte na ' + I.share + ' <b>Sdílet</b></span></li>' +
+    '<li><span class="stepn">2</span><span>Vyberte ' + I.addsq + ' <b>Přidat na plochu</b></span></li>' +
+    '<li><span class="stepn">3</span><span>Klepněte na <b>Přidat</b>. Hotovo, ikona je na ploše.</span></li></ol>';
+
+  // uvítání pro klienta, který otevřel odkaz na instalaci (…/?app)
+  function welcome(t){
+    var perk = function(icon, text){ return '<li>' + icon + '<span>' + text + '</span></li>'; };
+    openSheet('<div class="welcome"><img class="appicon" src="/ikony/icon-192.png" alt="">' +
+      '<div class="eyebrow">Přehled střihu</div><h2>' + esc(t.name) + '</h2>' +
+      '<p>Všechna videa, která pro vás stříhám, na jednom místě.</p>' +
+      '<ul class="perks">' +
+        perk(I.refresh, 'Vždy aktuální stav – změny uvidíte hned') +
+        perk(I.play, 'Videa si pustíte jedním klepnutím') +
+        perk(I.archive, 'Historie všech uzavřených měsíců') +
+      '</ul>' +
+      (isIOS && !installEvt ? IOS_STEPS + '<button class="btn primary" type="button" data-close>Rozumím</button>'
+        : '<button class="btn primary" type="button" data-install>' + I.down + 'Nainstalovat aplikaci</button>' +
+          '<button class="btn ghost" type="button" data-close>Zobrazit v prohlížeči</button>') +
+      '</div>');
+  }
+
+  function installBar(){
+    try { if (localStorage.getItem('installbar-off')) return ''; } catch (e) {}
+    if (isStandalone || window.innerWidth > 900) return '';
+    return '<div class="installbar"><img src="/ikony/icon-192.png" alt=""><div><b>Mějte přehled v mobilu</b><span>Aplikace s vaší tabulkou na ploše</span></div>' +
+      '<button class="btn primary sm" type="button" data-install>Stáhnout</button>' +
+      '<button class="iconbtn" type="button" data-hidebar aria-label="Skrýt">' + I.x + '</button></div>';
+  }
+
   function installHelp(){
     if (installEvt) {
       installEvt.prompt();
@@ -605,10 +654,7 @@ dialog[open]{animation:pop .18s ease-out}
       return;
     }
     if (isIOS) {
-      openSheet('<h2>Stáhnout do iPhonu</h2><p>Na iPhonu to jde jen přes Safari, zabere to 5 vteřin:</p><ol>' +
-        '<li><span class="stepn">1</span><span>Dole klepněte na ' + I.share + ' <b>Sdílet</b></span></li>' +
-        '<li><span class="stepn">2</span><span>Vyberte ' + I.addsq + ' <b>Přidat na plochu</b></span></li>' +
-        '<li><span class="stepn">3</span><span>Klepněte na <b>Přidat</b>. Hotovo, ikona je na ploše.</span></li></ol>' +
+      openSheet('<h2>Stáhnout do iPhonu</h2><p>Na iPhonu to jde přes Safari, zabere to 5 vteřin:</p>' + IOS_STEPS +
         '<div class="acts"><button class="btn primary" data-close>Rozumím</button></div>');
       return;
     }
@@ -640,7 +686,7 @@ dialog[open]{animation:pop .18s ease-out}
         '<div class="amount">' + (all.length ? num(sum(all)) : '0') + '<small>' + esc(t.currency) + '</small></div>' +
         '<div class="tags"><span class="tag">' + all.length + ' ' + videos(all.length) + '</span>' + t.groups.map(function(g){ return '<span class="tag">' + esc(g.label) + ' · ' + g.items.length + '</span>'; }).join('') + '</div>' +
         '<div class="acts"><button class="btn sm primary" type="button" data-open="' + t.id + '">Otevřít</button>' +
-        (t.shareUrl ? '<button class="btn sm" type="button" data-link="' + t.id + '">' + I.link + 'Odkaz</button>' : '<span class="hint">Odkaz se připravuje…</span>') +
+        (t.shareUrl ? '<button class="btn sm" type="button" data-link="' + t.id + '">' + I.share + 'Poslat klientovi</button>' : '<span class="hint">Odkaz se připravuje…</span>') +
         '<button class="iconbtn del" type="button" data-del-table="' + t.id + '" title="Smazat tabulku" aria-label="Smazat tabulku ' + esc(t.name) + '">' + I.trash + '</button></div></article>';
     });
     h += '<button class="card newcard" type="button" id="new"><span class="plus">' + I.plus + '</span>Nová tabulka</button></div>';
@@ -659,7 +705,7 @@ dialog[open]{animation:pop .18s ease-out}
   function renderEditTable(t){
     var all = itemsOf(t.groups), n = all.length;
     var h = '<div class="toolbar"><button class="btn" type="button" id="home">' + I.back + 'Všechny tabulky</button><span class="grow"></span>' +
-      (t.shareUrl ? '<button class="btn primary" type="button" data-link="' + t.id + '">' + I.link + 'Kopírovat odkaz</button>' +
+      (t.shareUrl ? '<button class="btn primary" type="button" data-link="' + t.id + '">' + I.share + 'Poslat klientovi</button>' +
         '<a class="btn" href="' + esc(t.shareUrl) + '" target="_blank" rel="noopener">' + I.eye + '<span>Jak to vidí klient</span></a>' : '') +
       '<button class="btn" type="button" id="sharetext">' + I.copy + '<span>Text</span></button>' +
       '<button class="btn" type="button" id="pdf">' + I.print + '<span>PDF</span></button></div>';
@@ -684,6 +730,20 @@ dialog[open]{animation:pop .18s ease-out}
       h += '<div class="section-head"><h2>Historie</h2><span>' + t.archives.length + ' ' + months(t.archives.length) + '</span></div>' + archiveCards(t, true);
     }
     return h;
+  }
+
+  function appLink(t){ return t.shareUrl + '?app'; }
+  function shareMessage(t){
+    return 'Ahoj, tady je tvůj přehled střihu: ' + appLink(t) + '\n\n' +
+      'Po otevření klepni na „Nainstalovat aplikaci“ a budeš ho mít v mobilu jako aplikaci. ' +
+      'Uvidíš tam vždy aktuální videa, můžeš si je rovnou pustit a najdeš tam i historii všech uzavřených měsíců.';
+  }
+  function shareSheet(t){
+    openSheet('<h2>Poslat klientovi</h2><p>Klient uvidí jen tabulku <b>' + esc(t.name) + '</b> a její historii. Odkaz platí napořád a vždy ukazuje aktuální stav.</p>' +
+      '<textarea readonly id="sharemsg">' + esc(shareMessage(t)) + '</textarea>' +
+      '<div class="acts" style="flex-wrap:wrap"><a class="btn" href="' + esc(appLink(t)) + '" target="_blank" rel="noopener">' + I.eye + 'Jak to uvidí klient</a>' +
+      '<button class="btn" type="button" data-copy="' + esc(appLink(t)) + '">' + I.link + 'Jen odkaz</button>' +
+      '<button class="btn primary" type="button" data-copy-msg>' + I.copy + 'Kopírovat zprávu</button></div>');
   }
 
   function lastPrice(g){ for (var i = g.items.length - 1; i >= 0; i--) if (g.items[i].price !== '') return g.items[i].price; return ''; }
@@ -802,6 +862,8 @@ dialog[open]{animation:pop .18s ease-out}
     if (!b || b.tagName === 'A') return;
     var d = b.dataset;
     if (d.tab) { ui.tab = d.tab; render(); return; }
+    if (d.install != null) { installHelp(); return; }
+    if (d.hidebar != null) { try { localStorage.setItem('installbar-off', '1'); } catch (e) {} render(); return; }
     if (d.delArch && t) {
       var da = findArch(t, d.delArch);
       if (da && confirm('Smazat historii „' + da.label + '“? Tohle nejde vrátit.')) { t.archives = t.archives.filter(function(x){ return x !== da; }); touch(t); save(true); render(); }
@@ -817,7 +879,7 @@ dialog[open]{animation:pop .18s ease-out}
     }
     if (!EDIT) return;
     if (d.play) { openPlayer(t.groups[+d.g].items[+d.i]); return; }
-    if (d.link) { var lt = findTable(d.link); if (lt && lt.shareUrl) copy(lt.shareUrl, 'Odkaz zkopírován — pošlete ho klientovi'); return; }
+    if (d.link) { var lt = findTable(d.link); if (lt && lt.shareUrl) shareSheet(lt); return; }
     if (d.open) { openTable(d.open); return; }
     if (d.delTable) {
       var dt = findTable(d.delTable);
@@ -857,6 +919,7 @@ dialog[open]{animation:pop .18s ease-out}
     render(); poll();
   } else {
     render();
+    if (/[?&]app\b/.test(location.search) && !isStandalone && state.tables[0]) setTimeout(function(){ welcome(state.tables[0]); }, 400);
     window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); installEvt = e; });
     window.addEventListener('appinstalled', function(){ isStandalone = true; renderTop(); toast('Aplikace je na ploše'); });
     if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
