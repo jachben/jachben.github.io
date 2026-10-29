@@ -249,6 +249,11 @@ dialog[open]{animation:pop .18s ease-out}
 .sheet li svg{width:18px;height:18px;color:var(--accent);vertical-align:-3px}
 .sheet textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:12px;font:13px/1.5 var(--mono);resize:vertical}
 .sheet .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.monthbadge{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--hero-2);font-weight:700;font-size:13px;letter-spacing:.02em;padding:6px 12px;border-radius:999px;box-shadow:0 6px 18px -6px rgba(0,0,0,.4)}
+.monthbadge i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.big.now{font-size:clamp(36px,7vw,58px)}
+.hero-hist{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:rgba(255,255,255,.6)}
+.hero-hist b{color:rgba(255,255,255,.85);font-weight:600;margin-left:4px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,14px);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -657,7 +662,26 @@ dialog[open]{animation:pop .18s ease-out}
   }
 
   function renderHome(){
-    var h = '<div class="page-head"><div><div class="eyebrow">Moje tabulky</div><h1>Přehledy střihu</h1></div></div><div class="cards">';
+    var h = '<div class="page-head"><div><div class="eyebrow">Moje tabulky</div><h1>Přehledy střihu</h1></div></div>';
+    if (state.tables.length) {
+      // součet přes všechny tabulky: hlavně aktuální (nevyfakturované) videa, historie jen doplňkově
+      var cur = { currency: state.tables[0].currency }, now = 0, nowN = 0, hist = 0;
+      state.tables.forEach(function(t){
+        var all = itemsOf(t.groups); now += sum(all); nowN += all.length;
+        t.archives.forEach(function(a){ hist += sum(itemsOf(a.groups)); });
+      });
+      h += '<section class="hero"><span class="monthbadge"><i></i>Aktuální měsíc · ' + esc(monthLabel()) + '</span>' +
+        '<div class="hero-total" style="margin-top:14px"><div><div class="big-lbl">K úhradě teď (všechny tabulky)</div>' +
+        '<div class="big now">' + num(now) + '<small>' + esc(cur.currency) + '</small></div>' +
+        '<div class="big-lbl" style="margin:8px 0 0">' + nowN + ' ' + videos(nowN) + ' ve ' + state.tables.length + ' tabulkách</div></div>' +
+        '<div class="chips">' +
+        state.tables.map(function(t){ return '<div class="chip"><b>' + money(t, sum(itemsOf(t.groups))) + '</b><span>' + esc(t.name) + '</span></div>'; }).join('') +
+        '</div></div>' +
+        (hist ? '<div class="hero-hist"><span>Historie (uzavřené měsíce) <b>' + money(cur, hist) + '</b></span>' +
+                '<span>Celkem vše <b>' + money(cur, now + hist) + '</b></span></div>' : '') +
+        '</section>';
+    }
+    h += '<div class="cards">';
     state.tables.forEach(function(t){
       var all = itemsOf(t.groups);
       h += '<article class="card" data-open="' + t.id + '" tabindex="0" role="button" aria-label="Otevřít ' + esc(t.name) + '">' +
