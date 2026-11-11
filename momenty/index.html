@@ -799,7 +799,6 @@ function homeHtml() {
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
     (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) +
     '<p class="hero-date">' + esc(fmtDate(c.date, true)) + ' · <b>' + esc(firstTime(c)) + '</b></p></header>' +
-    '<div class="hero-frame">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="eager"></div></div>' +
     '';
 
   if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
@@ -835,6 +834,7 @@ function homeHtml() {
     }).join('') + '</ol></div>';
   }
 
+  h += '<div class="hero-frame" style="margin-top:28px">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="lazy"></div></div>';
   h += '<footer>' + (c.driveUrl ? '<p><a href="' + esc(c.driveUrl) + '" target="_blank" rel="noopener">⬇ Stáhnout všechny fotky v plné kvalitě</a></p>' : '') +
     '<p><button data-go="rules">Soukromí a pravidla galerie</button></p>' +
     (c.deleteAt ? '<p>Fotky se smažou ' + esc(fmtDate(c.deleteAt)) + '.</p>' : '') +
