@@ -97,6 +97,13 @@
   .mv { position: fixed; inset: 0; z-index: 42; background: #000; display: flex; flex-direction: column; }
   .mv-top { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + var(--safe-t)) 14px 8px; font-family: var(--display); font-size: 13px; }
   .mv-top .icon-btn { background: rgba(255,255,255,.12); border: 0; }
+  .mat-grid.half button { aspect-ratio: 1; position: relative; }
+  .mat-grid.half img { object-position: 50% 0; }
+  .mat-n { position: absolute; right: 6px; bottom: 6px; background: var(--a1); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; }
+  .pc-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .pc-photo { height: 46vh; background: #111; }
+  .pc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; display: block; }
+  .pc-body { padding: 12px 14px calc(24px + var(--safe-b)); max-width: 640px; margin: 0 auto; }
   .mv-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
   .mv-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .mv-stage .lb-nav { font-size: 28px; color: #fff; }
@@ -753,34 +760,67 @@ function updateBar(mode) {
 }
 window.addEventListener('beforeunload', function (e) { if (S.queue.length) { e.preventDefault(); e.returnValue = ''; } });
 
-/* ================================================ maturanti (portréty) */
-var MAT = [];
+/* ================================================ maturanti (třídy a vzkazy) */
+var MAT = [], CLASSES = {};
 function loadMat() {
-  return fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (l) {
-    MAT = Array.isArray(l) ? l : [];
-    if (S.view === 'home') render(true);
-    if (PARAMS.m) openMat(MAT.indexOf(String(PARAMS.m)));
+  return fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (l) {
+    CLASSES = Array.isArray(l) ? { '4FP': l } : (l || {});
+    MAT = []; Object.keys(CLASSES).forEach(function (k) { MAT = MAT.concat(CLASSES[k] || []); });
+    if (S.view === 'messages') render(true);
+    if (PARAMS.m && MAT.indexOf(String(PARAMS.m)) > -1) openPerson(String(PARAMS.m));
   }).catch(function () {});
 }
+function classOf(id) { var r = ''; Object.keys(CLASSES).forEach(function (k) { if ((CLASSES[k] || []).indexOf(id) > -1) r = k; }); return r; }
 function matUrl(id) { return APP_URL + '?m=' + encodeURIComponent(id); }
-function openMat(k) {
-  if (k < 0 || !MAT[k]) return;
+function matMsgs(id) { return (S.messages || []).filter(function (m) { return m.to === 'mat:' + id; }); }
+function ensureMessages() {
+  if (S.messages !== null) return Promise.resolve(S.messages);
+  return api('listMessages').then(function (l) { S.messages = l; S.msgCount = l.length; return l; }).catch(function () { S.messages = []; return []; });
+}
+function matGridHtml(cls) {
+  var ids = CLASSES[cls] || [];
+  if (!ids.length) return '<div class="card empty">Fotky této třídy zatím nejsou.</div>';
+  return '<div class="mat-grid half">' + ids.map(function (id) {
+    var n = matMsgs(id).length;
+    return '<button data-matid="' + id + '" aria-label="Maturant"><img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg">' + (n ? '<span class="mat-n">✉ ' + n + '</span>' : '') + '</button>';
+  }).join('') + '</div>';
+}
+function personListHtml(id) {
+  if (S.messages === null) return '<div class="empty small">Načítám vzkazy…</div>';
+  var l = matMsgs(id);
+  if (!l.length) return '<div class="empty small">Zatím žádný vzkaz. Napiš první!</div>';
+  return l.map(function (m) {
+    return '<div class="card msg"><p>' + esc(m.text) + '</p><div class="meta"><span>— ' + esc(m.from || 'Anonym') + '</span><span>' + ago(m.t) + '</span>' +
+      (isAdmin() ? '<button data-delmsg="' + esc(m.id) + '">Smazat</button>' : '') + '</div></div>';
+  }).join('');
+}
+function openPerson(id) {
+  if (MAT.indexOf(id) < 0) return;
   var el = $('#mv');
   if (!el) { el = document.createElement('div'); el.id = 'mv'; el.className = 'mv'; document.body.appendChild(el); bindMat(el); }
-  var id = MAT[k]; S.matIdx = k;
-  el.innerHTML = '<div class="mv-top"><span>' + (k + 1) + ' / ' + MAT.length + '</span><button class="icon-btn" data-mv="close" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-    '<div class="mv-stage"><button class="lb-nav prev" data-mv="prev" aria-label="Předchozí">‹</button><img src="maturanti/' + id + '.jpg" alt="Maturant ' + (k + 1) + '"><button class="lb-nav next" data-mv="next" aria-label="Další">›</button></div>' +
-    '<div class="lb-actions mv-bar"><button class="pill save" data-mv="share">↗ Poslat odkaz</button><button class="pill" data-mv="save">⬇ Uložit</button></div>';
+  var cls = classOf(id), ids = CLASSES[cls] || [], k = ids.indexOf(id);
+  S.matId = id;
+  el.innerHTML = '<div class="mv-top"><button class="icon-btn" data-mv="prev" aria-label="Předchozí">‹</button><span>' + esc(cls) + ' · ' + (k + 1) + ' / ' + ids.length + '</span>' +
+    '<span style="display:flex;gap:8px"><button class="icon-btn" data-mv="next" aria-label="Další">›</button><button class="icon-btn" data-mv="close" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>' +
+    '<div class="pc-scroll"><div class="pc-photo"><img src="maturanti/' + id + '.jpg" alt=""></div><div class="pc-body">' +
+    '<div class="lb-actions"><button class="pill save" data-mv="share">↗ Poslat odkaz</button><button class="pill" data-mv="save">⬇ Uložit fotku</button></div>' +
+    '<form id="pcForm" class="card glow" style="margin-top:12px"><h2 style="margin:0 0 10px">Napiš vzkaz</h2>' +
+    '<input class="inp" name="from" maxlength="40" placeholder="Od koho (nepovinné)" value="' + esc(S.name) + '">' +
+    '<textarea class="inp" name="text" maxlength="800" required placeholder="Pár slov na památku…" style="margin-top:8px"></textarea>' +
+    '<button class="btn btn-main" style="width:100%;min-height:52px;font-size:16px;margin-top:8px">Poslat vzkaz</button></form>' +
+    '<div id="pcList">' + personListHtml(id) + '</div></div></div>';
   el.hidden = false; document.body.style.overflow = 'hidden';
+  ensureMessages().then(function () { if (S.matId === id && $('#pcList')) $('#pcList').innerHTML = personListHtml(id); });
 }
-function closeMat() { var el = $('#mv'); if (el) el.hidden = true; document.body.style.overflow = ''; }
+function closeMat() { var el = $('#mv'); if (el) el.hidden = true; document.body.style.overflow = ''; S.matId = null; if (S.view === 'messages') { var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls || Object.keys(CLASSES)[0]); } }
+function stepPerson(d) { var ids = CLASSES[classOf(S.matId)] || [], k = ids.indexOf(S.matId); if (!ids.length) return; openPerson(ids[(k + d + ids.length) % ids.length]); }
 function bindMat(el) {
   el.addEventListener('click', function (e) {
     var b = e.target.closest('[data-mv]'); if (!b) return;
-    var a = b.getAttribute('data-mv'), id = MAT[S.matIdx];
+    var a = b.getAttribute('data-mv'), id = S.matId;
     if (a === 'close') closeMat();
-    else if (a === 'prev') openMat(S.matIdx > 0 ? S.matIdx - 1 : MAT.length - 1);
-    else if (a === 'next') openMat(S.matIdx < MAT.length - 1 ? S.matIdx + 1 : 0);
+    else if (a === 'prev') stepPerson(-1);
+    else if (a === 'next') stepPerson(1);
     else if (a === 'share') {
       var url = matUrl(id);
       if (navigator.share) navigator.share({ title: S.cfg.title, url: url }).catch(function () {});
@@ -788,21 +828,36 @@ function bindMat(el) {
       else toast(url, null, null, 10000);
     } else if (a === 'save') {
       toast('Připravuji fotku…', null, null, 30000);
-      fetch('maturanti/' + id + '.jpg').then(function (r) { return r.blob(); }).then(function (b) {
-        var f = new File([b], 'maturant-' + id + '.jpg', { type: 'image/jpeg' });
+      fetch('maturanti/' + id + '.jpg').then(function (r) { return r.blob(); }).then(function (bl) {
+        var f = new File([bl], 'maturant-' + id + '.jpg', { type: 'image/jpeg' });
         toast('Fotka je připravená', 'Uložit do Fotek', function () { shareFiles([f]); }, 60000);
       }).catch(function () { toast('Fotku se nepodařilo stáhnout.'); });
     }
   });
-  var x0 = null;
-  el.addEventListener('touchstart', function (e) { x0 = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
-  el.addEventListener('touchend', function (e) {
-    if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null;
-    if (Math.abs(dx) > 50) openMat(dx < 0 ? (S.matIdx < MAT.length - 1 ? S.matIdx + 1 : 0) : (S.matIdx > 0 ? S.matIdx - 1 : MAT.length - 1));
+  el.addEventListener('submit', function (e) {
+    if (e.target.id !== 'pcForm') return;
+    e.preventDefault();
+    var form = e.target, fd = new FormData(form), btn = form.querySelector('button'), id = S.matId;
+    var text = String(fd.get('text') || '').trim(); if (!text) return;
+    var from = String(fd.get('from') || '').trim(); if (from) { S.name = from; save('name', S.name); }
+    btn.disabled = true; btn.textContent = 'Posílám…';
+    api('addMessage', { from: from, to: 'mat:' + id, text: text }).then(function (list) {
+      S.messages = list; S.msgCount = list.length;
+      form.querySelector('[name=text]').value = ''; btn.disabled = false; btn.textContent = 'Poslat vzkaz';
+      if ($('#pcList')) $('#pcList').innerHTML = personListHtml(id);
+      toast('Vzkaz odeslán ✓');
+    }).catch(function (err) { btn.disabled = false; btn.textContent = 'Poslat vzkaz'; toast('Nepodařilo se: ' + errMsg(err)); });
   });
+  el.addEventListener('click', function (e) {
+    var d = e.target.closest('[data-delmsg]'); if (!d) return;
+    adm('delMsg', d.getAttribute('data-delmsg')).then(function (l) { S.messages = l; S.msgCount = l.length; if ($('#pcList')) $('#pcList').innerHTML = personListHtml(S.matId); });
+  });
+  var x0 = null;
+  el.addEventListener('touchstart', function (e) { x0 = (e.touches.length === 1 && e.target.closest('.pc-photo')) ? e.touches[0].clientX : null; }, { passive: true });
+  el.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) stepPerson(dx < 0 ? 1 : -1); });
   document.addEventListener('keydown', function (e) {
-    if (el.hidden) return;
-    if (e.key === 'Escape') closeMat(); else if (e.key === 'ArrowRight') el.querySelector('[data-mv=next]').click(); else if (e.key === 'ArrowLeft') el.querySelector('[data-mv=prev]').click();
+    if (el.hidden || /INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) return;
+    if (e.key === 'Escape') closeMat(); else if (e.key === 'ArrowRight') stepPerson(1); else if (e.key === 'ArrowLeft') stepPerson(-1);
   });
 }
 
@@ -993,8 +1048,6 @@ function homeHtml() {
   h += '<div class="sec-head"><h2>Společná galerie</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
   h += latest.length ? '<div class="grid">' + latest.map(tileHtml).join('') + '</div>'
     : '<div class="card empty"><div class="big">📸</div>Zatím tu nic není. Buď první, kdo přidá fotku!</div>';
-  if (MAT.length) h += '<div class="sec-head"><h2>Maturanti</h2><span class="muted small">' + MAT.length + '</span></div><div class="mat-grid">' +
-    MAT.map(function (id, k) { return '<button data-mat="' + k + '" aria-label="Maturant ' + (k + 1) + '"><img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg"></button>'; }).join('') + '</div>';
 
   h += '<button class="card nav-card" data-go="messages"><span class="ico">' + I.pen + '</span><span><b>' + esc(c.msgTitle || 'Vzkazy') + '</b><br><span class="muted small">' + esc(c.msgSub || '') + '</span></span><span class="chev">›</span></button>';
 
@@ -1052,9 +1105,15 @@ function galleryHtml() {
 }
 
 function messagesHtml() {
-  var c = S.cfg;
+  var c = S.cfg, names = Object.keys(CLASSES);
+  if (!S.cls || names.indexOf(S.cls) < 0) S.cls = names[0];
   var h = '<div class="wrap">' + topbar(esc(c.msgTitle || 'Vzkazy'));
-  h += '<form class="card glow" id="msgForm" style="margin-top:0"><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
+  if (names.length) {
+    h += '<p class="muted small" style="margin:0 0 10px">Klepni na maturanta a napiš mu vzkaz na památku.</p><div class="tabs">' +
+      names.map(function (n) { return '<button class="tab' + (n === S.cls ? ' on' : '') + '" data-cls="' + esc(n) + '">' + esc(n) + ' · ' + (CLASSES[n] || []).length + '</button>'; }).join('') + '</div>' +
+      '<div id="matGrid">' + matGridHtml(S.cls) + '</div>';
+  }
+  h += '<form class="card glow" id="msgForm" style="margin-top:24px"><h2 style="margin:0 0 6px">Vzkaz pro všechny</h2><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
     '<input class="inp" name="from" maxlength="40" placeholder="Od koho" value="' + esc(S.name) + '">' +
     '<input class="inp" name="to" maxlength="40" placeholder="Pro koho"></div>' +
     '<textarea class="inp" name="text" maxlength="800" required placeholder="Napiš pár slov na památku…" style="margin-top:10px"></textarea>' +
@@ -1063,14 +1122,15 @@ function messagesHtml() {
 }
 function msgListHtml() {
   if (S.messages === null) return '<div class="empty">Načítám…</div>';
-  if (!S.messages.length) return '<div class="empty">Zatím žádné vzkazy. Napiš první!</div>';
-  return S.messages.map(function (m) {
+  var gen = S.messages.filter(function (m) { return String(m.to || '').indexOf('mat:') !== 0; });
+  if (!gen.length) return '<div class="empty">Zatím žádné vzkazy. Napiš první!</div>';
+  return gen.map(function (m) {
     return '<div class="card msg">' + (m.to ? '<div class="to">Pro <span>' + esc(m.to) + '</span></div>' : '') + '<p>' + esc(m.text) + '</p>' +
       '<div class="meta"><span>— ' + esc(m.from || 'Anonym') + '</span><span>' + ago(m.t) + '</span>' +
       (isAdmin() ? '<button data-delmsg="' + esc(m.id) + '">Smazat</button>' : '') + '</div></div>';
   }).join('');
 }
-function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgListHtml(); }
+function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgListHtml(); var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls); }
 
 function rulesHtml() {
   var c = S.cfg;
@@ -1342,10 +1402,11 @@ function bindView() {
 }
 
 document.addEventListener('click', function (e) {
-  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom],[data-mat]');
+  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom],[data-cls],[data-matid]');
   if (!t) return;
   if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
-  if (t.hasAttribute('data-mat')) { openMat(+t.getAttribute('data-mat')); return; }
+  if (t.hasAttribute('data-matid')) { openPerson(t.getAttribute('data-matid')); return; }
+  if (t.hasAttribute('data-cls')) { S.cls = t.getAttribute('data-cls'); var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls); document.querySelectorAll('[data-cls]').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-cls') === S.cls); }); return; }
   if (t.closest('#setForm')) return;
   if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.shown = 60; render(true); return; }
   if (t.hasAttribute('data-admtab')) { S.admTab = t.getAttribute('data-admtab'); render(true); return; }
