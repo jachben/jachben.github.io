@@ -79,8 +79,8 @@
   .hero-date b { color: var(--a1); font-weight: 400; }
   .hero-frame { position: relative; margin: 0 -16px; padding: 22px 16px 0; }
   .hero-frame::before { content: ""; position: absolute; inset: 10px 10px auto; height: 100%; border: 2px solid var(--a1); pointer-events: none; }
-  .brush { position: absolute; right: -6%; top: 6%; width: 62%; max-width: 360px; height: auto; pointer-events: none; z-index: 0; opacity: .95; }
-  .hero .brush { z-index: 0; }
+  .hero-frame { position: relative; }
+  .rocket { position: absolute; right: -10px; top: -26px; width: 44%; max-width: 180px; height: auto; z-index: 3; pointer-events: none; filter: drop-shadow(8px 10px 0 rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(36,82,232,.55)); transform: rotate(8deg); }
   .ticker { overflow: hidden; background: var(--a1); color: #fff; font-family: var(--display); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; padding: 9px 0; margin: 0 -16px; }
   .ticker .track { display: inline-flex; animation: tick 22s linear infinite; }
   .ticker span { padding-right: 36px; }
@@ -787,14 +787,19 @@ function homeHtml() {
   var authors = {}; S.photos.forEach(function (p) { if (p.a) authors[p.a.toLowerCase()] = 1; });
   var cover = c.coverId ? ' cover" style="background-image:url(\'' + esc(IMG.thumb(c.coverId, 1600)) + '\')' : '';
   var h = '<div class="wrap">';
-  var brush = '<svg class="brush" viewBox="0 0 300 420" aria-hidden="true"><path d="M150 4 C 120 90, 60 170, 64 300 C 66 350, 94 380, 120 404 C 112 330, 128 250, 150 200 C 170 250, 190 330, 182 404 C 210 380, 236 350, 236 300 C 240 170, 180 90, 150 4 Z" fill="#2452e8"/><path d="M40 320 C 30 280, 40 250, 58 236 C 66 290, 90 320, 116 330 C 96 346, 62 344, 40 320 Z" fill="#2452e8"/><path d="M262 320 C 272 280, 262 250, 244 236 C 236 290, 212 320, 186 330 C 206 346, 240 344, 262 320 Z" fill="#2452e8"/></svg>';
-  h += '<header class="hero' + cover + '">' + brush +
+  var brush = '<svg class="rocket" viewBox="0 0 300 420" aria-hidden="true"><defs><linearGradient id="rkg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#8fb0ff"/><stop offset=".45" stop-color="#2452e8"/><stop offset="1" stop-color="#0d2a9c"/></linearGradient></defs>' +
+    '<path d="M150 4 C 120 90, 60 170, 64 300 C 66 350, 94 380, 120 404 C 112 330, 128 250, 150 200 C 170 250, 190 330, 182 404 C 210 380, 236 350, 236 300 C 240 170, 180 90, 150 4 Z" fill="url(#rkg)"/>' +
+    '<path d="M40 320 C 30 280, 40 250, 58 236 C 66 290, 90 320, 116 330 C 96 346, 62 344, 40 320 Z" fill="url(#rkg)"/>' +
+    '<path d="M262 320 C 272 280, 262 250, 244 236 C 236 290, 212 320, 186 330 C 206 346, 240 344, 262 320 Z" fill="url(#rkg)"/>' +
+    '<path d="M150 14 C 128 90, 88 170, 92 290" fill="none" stroke="#dfe9ff" stroke-width="7" stroke-linecap="round" opacity=".75"/>' +
+    '<path d="M150 200 C 140 240, 132 290, 134 380" fill="none" stroke="#dfe9ff" stroke-width="5" stroke-linecap="round" opacity=".5"/></svg>';
+  h += '<header class="hero' + cover + '">' +
     (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
     '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
     (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) +
     '<p class="hero-date">' + esc(fmtDate(c.date, true)) + ' · <b>' + esc(firstTime(c)) + '</b></p></header>' +
-    '<div class="hero-frame"><div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="eager"></div></div>' +
+    '<div class="hero-frame">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="eager"></div></div>' +
     '';
 
   if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
