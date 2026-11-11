@@ -109,8 +109,10 @@
   .mat-grid.half img { object-position: 50% 0; }
   .mat-n { position: absolute; right: 6px; bottom: 6px; background: #2452e8; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; }
   .pc-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .pc-photo { height: 34vh; background: #111; display: flex; justify-content: center; padding: 10px 0; }
-  .pc-photo img { height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block; }
+  .pc-photo { height: 36vh; display: flex; justify-content: center; align-items: center; padding: 18px 0 22px; background: radial-gradient(rgba(255,255,255,.12) 1.1px, transparent 1.6px) 0 0 / 9px 9px; }
+  .pc-frame { position: relative; height: 100%; padding: 6px; background: #f4f4ef; box-shadow: 10px 10px 0 #2452e8; transform: rotate(-1.5deg); }
+  .pc-frame::before { content: ""; position: absolute; left: -6px; right: -6px; top: -12px; height: 8px; background: repeating-linear-gradient(90deg, #2452e8 0 8px, transparent 8px 16px); }
+  .pc-photo img { height: 100%; width: auto; max-width: 70vw; object-fit: contain; display: block; }
   .pc-body { padding: 12px 14px calc(24px + var(--safe-b)); max-width: 640px; margin: 0 auto; }
   .mv-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
   .mv-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -810,8 +812,8 @@ function openPerson(id) {
   S.matId = id;
   el.innerHTML = '<div class="mv-top"><button class="icon-btn" data-mv="prev" aria-label="Předchozí">‹</button><span>' + esc(cls) + ' · ' + (k + 1) + ' / ' + ids.length + '</span>' +
     '<span style="display:flex;gap:8px"><button class="icon-btn" data-mv="next" aria-label="Další">›</button><button class="icon-btn" data-mv="close" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>' +
-    '<div class="pc-scroll"><div class="pc-photo"><img src="maturanti/' + id + '.jpg" alt=""></div><div class="pc-body">' +
-    '<div class="lb-actions"><button class="pill save" data-mv="share">↗ Poslat odkaz</button><button class="pill" data-mv="save">⬇ Uložit fotku</button></div>' +
+    '<div class="pc-scroll"><div class="pc-photo"><span class="pc-frame"><img src="maturanti/' + id + '.jpg" alt=""></span></div><div class="pc-body">' +
+    '<div class="lb-actions"><button class="pill save" data-mv="share">↗ Poslat odkaz</button></div>' +
     '<form id="pcForm" class="card glow" style="margin-top:12px"><h2 style="margin:0 0 10px">Napiš vzkaz</h2>' +
     '<input class="inp" name="from" maxlength="40" placeholder="Od koho (nepovinné)" value="' + esc(S.name) + '">' +
     '<textarea class="inp" name="text" maxlength="800" required placeholder="Pár slov na památku…" style="margin-top:8px"></textarea>' +
