@@ -88,6 +88,19 @@
   .mini-n { flex: none; font-size: 13px; font-weight: 700; }
   .dropzone { position: fixed; inset: 0; z-index: 90; background: rgba(29,29,27,.88); display: grid; place-items: center; border: 4px dashed var(--a1); pointer-events: none; }
   .dropzone div { font-family: var(--display); font-size: 24px; text-transform: uppercase; color: #fff; text-align: center; padding: 20px; }
+  /* maturanti */
+  .mat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  @media (min-width: 600px) { .mat-grid { grid-template-columns: repeat(5, 1fr); } }
+  .mat-grid button { aspect-ratio: 2 / 3; padding: 0; overflow: hidden; background: #2a2a27; }
+  .mat-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .mat-grid button:hover img { transform: scale(1.04); }
+  .mv { position: fixed; inset: 0; z-index: 42; background: #000; display: flex; flex-direction: column; }
+  .mv-top { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + var(--safe-t)) 14px 8px; font-family: var(--display); font-size: 13px; }
+  .mv-top .icon-btn { background: rgba(255,255,255,.12); border: 0; }
+  .mv-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
+  .mv-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .mv-stage .lb-nav { font-size: 28px; color: #fff; }
+  .mv-bar { padding: 10px 12px calc(12px + var(--safe-b)); }
   /* poster-style extras */
   .poster-art { margin: 26px auto 0; max-width: 420px; border: 2px solid var(--text); box-shadow: 10px 10px 0 var(--a1); background: var(--bg); position: relative; }
   .poster-art img { width: 100%; height: auto; display: block; }
@@ -740,6 +753,59 @@ function updateBar(mode) {
 }
 window.addEventListener('beforeunload', function (e) { if (S.queue.length) { e.preventDefault(); e.returnValue = ''; } });
 
+/* ================================================ maturanti (portréty) */
+var MAT = [];
+function loadMat() {
+  return fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (l) {
+    MAT = Array.isArray(l) ? l : [];
+    if (S.view === 'home') render(true);
+    if (PARAMS.m) openMat(MAT.indexOf(String(PARAMS.m)));
+  }).catch(function () {});
+}
+function matUrl(id) { return APP_URL + '?m=' + encodeURIComponent(id); }
+function openMat(k) {
+  if (k < 0 || !MAT[k]) return;
+  var el = $('#mv');
+  if (!el) { el = document.createElement('div'); el.id = 'mv'; el.className = 'mv'; document.body.appendChild(el); bindMat(el); }
+  var id = MAT[k]; S.matIdx = k;
+  el.innerHTML = '<div class="mv-top"><span>' + (k + 1) + ' / ' + MAT.length + '</span><button class="icon-btn" data-mv="close" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<div class="mv-stage"><button class="lb-nav prev" data-mv="prev" aria-label="Předchozí">‹</button><img src="maturanti/' + id + '.jpg" alt="Maturant ' + (k + 1) + '"><button class="lb-nav next" data-mv="next" aria-label="Další">›</button></div>' +
+    '<div class="lb-actions mv-bar"><button class="pill save" data-mv="share">↗ Poslat odkaz</button><button class="pill" data-mv="save">⬇ Uložit</button></div>';
+  el.hidden = false; document.body.style.overflow = 'hidden';
+}
+function closeMat() { var el = $('#mv'); if (el) el.hidden = true; document.body.style.overflow = ''; }
+function bindMat(el) {
+  el.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mv]'); if (!b) return;
+    var a = b.getAttribute('data-mv'), id = MAT[S.matIdx];
+    if (a === 'close') closeMat();
+    else if (a === 'prev') openMat(S.matIdx > 0 ? S.matIdx - 1 : MAT.length - 1);
+    else if (a === 'next') openMat(S.matIdx < MAT.length - 1 ? S.matIdx + 1 : 0);
+    else if (a === 'share') {
+      var url = matUrl(id);
+      if (navigator.share) navigator.share({ title: S.cfg.title, url: url }).catch(function () {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast('Odkaz zkopírován'); }, function () { toast(url, null, null, 10000); });
+      else toast(url, null, null, 10000);
+    } else if (a === 'save') {
+      toast('Připravuji fotku…', null, null, 30000);
+      fetch('maturanti/' + id + '.jpg').then(function (r) { return r.blob(); }).then(function (b) {
+        var f = new File([b], 'maturant-' + id + '.jpg', { type: 'image/jpeg' });
+        toast('Fotka je připravená', 'Uložit do Fotek', function () { shareFiles([f]); }, 60000);
+      }).catch(function () { toast('Fotku se nepodařilo stáhnout.'); });
+    }
+  });
+  var x0 = null;
+  el.addEventListener('touchstart', function (e) { x0 = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+  el.addEventListener('touchend', function (e) {
+    if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) openMat(dx < 0 ? (S.matIdx < MAT.length - 1 ? S.matIdx + 1 : 0) : (S.matIdx > 0 ? S.matIdx - 1 : MAT.length - 1));
+  });
+  document.addEventListener('keydown', function (e) {
+    if (el.hidden) return;
+    if (e.key === 'Escape') closeMat(); else if (e.key === 'ArrowRight') el.querySelector('[data-mv=next]').click(); else if (e.key === 'ArrowLeft') el.querySelector('[data-mv=prev]').click();
+  });
+}
+
 /* ======================================= uložení do Fotek (nabídka sdílení) */
 function fileFromBlob(id, b) {
   var type = b.type || 'image/jpeg';
@@ -927,6 +993,8 @@ function homeHtml() {
   h += '<div class="sec-head"><h2>Společná galerie</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
   h += latest.length ? '<div class="grid">' + latest.map(tileHtml).join('') + '</div>'
     : '<div class="card empty"><div class="big">📸</div>Zatím tu nic není. Buď první, kdo přidá fotku!</div>';
+  if (MAT.length) h += '<div class="sec-head"><h2>Maturanti</h2><span class="muted small">' + MAT.length + '</span></div><div class="mat-grid">' +
+    MAT.map(function (id, k) { return '<button data-mat="' + k + '" aria-label="Maturant ' + (k + 1) + '"><img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg"></button>'; }).join('') + '</div>';
 
   h += '<button class="card nav-card" data-go="messages"><span class="ico">' + I.pen + '</span><span><b>' + esc(c.msgTitle || 'Vzkazy') + '</b><br><span class="muted small">' + esc(c.msgSub || '') + '</span></span><span class="chev">›</span></button>';
 
@@ -1274,9 +1342,10 @@ function bindView() {
 }
 
 document.addEventListener('click', function (e) {
-  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom]');
+  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom],[data-mat]');
   if (!t) return;
   if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
+  if (t.hasAttribute('data-mat')) { openMat(+t.getAttribute('data-mat')); return; }
   if (t.closest('#setForm')) return;
   if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.shown = 60; render(true); return; }
   if (t.hasAttribute('data-admtab')) { S.admTab = t.getAttribute('data-admtab'); render(true); return; }
@@ -1548,6 +1617,7 @@ function start() {
     if (PARAMS.v === 'qr') return startPrint();
     render();
     if (S.admin) adminLogin(S.admin, true);
+    loadMat();
     IDB.all().then(function (items) {
       if (!items || !items.length) return;
       items.forEach(function (it) { it.url = URL.createObjectURL(it.blob); it.tries = 0; S.queue.push(it); });
