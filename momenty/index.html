@@ -80,9 +80,9 @@
   .selbar .selcount { font-family: var(--display); font-size: 13px; margin-right: auto; }
   .selbar .pill[disabled] { opacity: .4; }
   /* mini komentáře pod fotkou */
-  .mini-row { flex-basis: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(255,255,255,.12); border-radius: 0; text-align: left; color: #fff; min-width: 0; }
+  .mini-row { width: 100%; display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: rgba(255,255,255,.12); border-radius: 0; text-align: left; color: #fff; min-width: 0; }
   .mini-avs { display: flex; flex: none; }
-  .mini-av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 700 12px 'Space Grotesk', sans-serif; border: 2px solid #111; margin-left: -7px; }
+  .mini-av { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 10px 'Space Grotesk', sans-serif; border: 2px solid #111; margin-left: -6px; }
   .mini-avs .mini-av:first-child { margin-left: 0; }
   .mini-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
   .mini-n { flex: none; font-size: 13px; font-weight: 700; }
@@ -211,7 +211,11 @@
   .lb { position: fixed; inset: 0; z-index: 40; background: #000; display: flex; flex-direction: column; touch-action: pan-y; }
   .lb-top, .lb-bot { position: absolute; left: 0; right: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 12px 14px; }
   .lb-top { top: 0; background: linear-gradient(rgba(0,0,0,.75), transparent); padding-top: calc(12px + var(--safe-t)); }
-  .lb-bot { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.85)); padding-bottom: calc(16px + var(--safe-b)); flex-wrap: wrap; justify-content: center; }
+  .lb-bot { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.85)); padding: 24px 12px calc(10px + var(--safe-b)); flex-direction: column; align-items: stretch; gap: 6px; }
+  .lb-actions { display: flex; gap: 6px; width: 100%; }
+  .lb-actions .pill { padding: 9px 12px; font-size: 13px; justify-content: center; flex: none; }
+  .lb-actions .save { flex: 1; }
+  .lb-actions.adm .pill { flex: 1; padding: 7px 10px; font-size: 12px; }
   .lb-top .who { font-weight: 700; } .lb-top .when { font-size: 13px; color: var(--muted); }
   .lb-top .icon-btn { margin-left: auto; background: rgba(255,255,255,.12); border: 0; }
   .lb-stage { flex: 1; display: grid; place-items: center; overflow: hidden; }
@@ -219,7 +223,7 @@
   .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 48px; height: 48px; border-radius: 0; background: var(--a1); display: none; place-items: center; }
   @media (hover: hover) { .lb-nav { display: grid; } }
   .lb-nav.prev { left: 14px; } .lb-nav.next { right: 14px; }
-  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 0; background: rgba(255,255,255,.14); font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; border: 0; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 0; background: rgba(255,255,255,.14); font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; border: 0; }
   .pill.on { background: var(--a1); }
   .pill.danger { background: rgba(255,92,122,.22); }
   .pill.acc { background: var(--a1); color: #fff; border-radius: 0; }
@@ -1361,12 +1365,13 @@ function showLb() {
   $('#lbWho').textContent = p.a || 'Anonym';
   $('#lbWhen').textContent = ago(p.t) + ' · ' + (S.lbIndex + 1) + ' / ' + S.lbList.length;
   var L = S.liked[p.id] || {}, c = S.cfg;
-  var bot = (c.comments ? '<button class="mini-row" data-cm id="miniRow"></button>' : '') + (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h">♥ ' + (p.hr || '') + '</button><button class="pill' + (L.l ? ' on' : '') + '" data-r="l">😂 ' + (p.lr || '') + '</button>' : '') +
-    (c.comments ? '<button class="pill" data-cm-open>💬 Komentovat' + (p.c ? ' · ' + p.c : '') + '</button>' : '') +
-    '<button class="pill" data-save>⬇ Uložit do Fotek</button>' +
-    '<button class="pill" data-share aria-label="Sdílet">↗</button>' +
-    (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>');
-  if (isAdmin()) bot += '<button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button>';
+  var bot = (c.comments ? '<button class="mini-row" data-cm id="miniRow"></button>' : '') +
+    '<div class="lb-actions">' +
+    (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h" aria-label="Líbí se mi">♥ ' + (p.hr || '') + '</button>' : '') +
+    (c.comments ? '<button class="pill" data-cm-open aria-label="Komentáře">💬 ' + (p.c || '') + '</button>' : '') +
+    '<button class="pill save" data-save>⬇ Uložit do Fotek</button>' +
+    (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>') + '</div>';
+  if (isAdmin()) bot += '<div class="lb-actions adm"><button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button></div>';
   $('#lbBot').innerHTML = bot;
   loadMini(p);
   [S.lbIndex + 1, S.lbIndex - 1].forEach(function (j) { var q = S.lbList[j]; if (q && !q._local) new Image().src = IMG.big(q.id); });
@@ -1438,7 +1443,7 @@ function renderMini(list) {
     avs += '<span class="mini-av" style="background:' + col[0] + ';color:' + col[1] + '" title="' + esc(nm || 'Anonym') + '">' + (nm ? esc(nm.charAt(0).toUpperCase()) : '💬') + '</span>';
   });
   var last = list[list.length - 1];
-  el.innerHTML = '<span class="mini-avs">' + avs + '</span><span class="mini-txt"><b>' + esc(last.n || 'Anonym') + '</b> ' + esc(last.x) + '</span><span class="mini-n">💬 ' + list.length + '</span>';
+  el.innerHTML = '<span class="mini-avs">' + avs + '</span><span class="mini-txt"><b>' + esc(last.n || 'Anonym') + '</b> ' + esc(last.x) + '</span>';
 }
 function loadMini(p) {
   if (!S.cfg.comments) return;
@@ -1455,7 +1460,7 @@ function renderComments(l) {
       (isAdmin() ? '<button data-delcm="' + esc(c.id) + '">Smazat</button>' : '') + '</div></div>';
   }).join('') : '<div class="empty small">Zatím žádný komentář. Napiš první!</div>';
   S.cm[p.id] = l; renderMini(l);
-  var b = $('#lbBot [data-cm-open]'); if (b) b.textContent = '💬 Komentovat' + (p.c ? ' · ' + p.c : '');
+  var b = $('#lbBot [data-cm-open]'); if (b) b.textContent = '💬 ' + (p.c || '');
 }
 $('#cmList').addEventListener('click', function (e) {
   var b = e.target.closest('[data-delcm]'); if (!b) return;
