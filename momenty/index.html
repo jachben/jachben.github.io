@@ -123,6 +123,16 @@
   .sec-head button { color: var(--a1); font-weight: 600; }
 
   .program { list-style: none; margin: 0; padding: 0; position: relative; }
+  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: rgba(255,255,255,.14); border-radius: 2px; }
+  .program::after { content: ""; position: absolute; left: 61px; top: 8px; width: 2px; height: calc((100% - 16px) * var(--fill, 0)); background: linear-gradient(#0d2a9c, #2452e8, #5c82ff); border-radius: 2px; transition: height .6s ease; }
+  .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
+  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid rgba(255,255,255,.35); z-index: 1; }
+  .program time { color: #5c82ff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 58px; font-size: 15px; }
+  .program li.done::before { background: #2452e8; border-color: #2452e8; }
+  .program li.now { color: #fff; }
+  .program li.now span { font-weight: 700; }
+  .program li.now::before { background: #5c82ff; border-color: #fff; box-shadow: 0 0 16px #5c82ff; width: 14px; height: 14px; left: 55px; top: 14px; }
+  .program li.now::after { content: "TEĎ"; margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .12em; padding: 3px 9px; border-radius: 99px; background: #2452e8; color: #fff; font-family: 'Space Grotesk', sans-serif; }
   .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(#22e5ff, #8b5cff, #ff3df2); border-radius: 2px; }
   .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
   .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid #8b5cff; }
@@ -812,7 +822,7 @@ function homeHtml() {
     '<div class="stat"><b class="grad">' + Object.keys(authors).length + '</b><span>fotografů</span></div>' +
     '<div class="stat"><b class="grad">' + S.msgCount + '</b><span>' + plural(S.msgCount, 'vzkaz', 'vzkazy', 'vzkazů') + '</span></div></div>';
 
-  h += '<div class="sec-head"><h2>Nejnovější</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
+  h += '<div class="sec-head"><h2>Společná galerie</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
   h += latest.length ? '<div class="grid">' + latest.map(tileHtml).join('') + '</div>'
     : '<div class="card empty"><div class="big">📸</div>Zatím tu nic není. Buď první, kdo přidá fotku!</div>';
 
@@ -829,16 +839,17 @@ function homeHtml() {
         if (m <= at) cur = i;
       });
     }
-    h += '<div class="card"><h2>Program</h2><ol class="program">' + c.program.map(function (p, i) {
+    var n = c.program.length, fill = cur < 0 ? 0 : (n > 1 ? Math.min(100, Math.round(cur / (n - 1) * 100)) : 100);
+    h += '<div class="card"><h2>Program</h2><ol class="program" style="--fill:' + (fill / 100) + '">' + c.program.map(function (p, i) {
       return '<li class="' + (i === cur ? 'now' : (cur > -1 && i < cur ? 'done' : '')) + '"><time>' + esc(p[0]) + '</time><span>' + esc(p[1]) + '</span></li>';
     }).join('') + '</ol></div>';
   }
 
-  h += '<div class="hero-frame" style="margin-top:28px">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="lazy"></div></div>';
   h += '<footer>' + (c.driveUrl ? '<p><a href="' + esc(c.driveUrl) + '" target="_blank" rel="noopener">⬇ Stáhnout všechny fotky v plné kvalitě</a></p>' : '') +
     '<p><button data-go="rules">Soukromí a pravidla galerie</button></p>' +
     (c.deleteAt ? '<p>Fotky se smažou ' + esc(fmtDate(c.deleteAt)) + '.</p>' : '') +
     '<p>Momenty · <button data-act="' + (isAdmin() ? 'logout' : 'login') + '">' + (isAdmin() ? 'Odhlásit pořadatele' : 'Pořadatel') + '</button></p></footer></div>';
+  h += '<div class="hero-frame" style="margin-top:28px">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="lazy"></div></div>';
   return h;
 }
 
