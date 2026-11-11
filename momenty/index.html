@@ -52,7 +52,7 @@
   .card.glow::before { content: none; }
 
   /* hero */
-  .hero { position: relative; text-align: center; padding: calc(36px + var(--safe-t)) 8px 10px; }
+  .hero { position: relative; text-align: center; padding: calc(36px + var(--safe-t)) 8px 10px; overflow: hidden; }
   .hero.cover { margin: 0 -16px; padding: calc(80px + var(--safe-t)) 24px 26px; background-size: cover; background-position: center; border-radius: 0 0 32px 32px; overflow: hidden; }
   .hero.cover::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,.25), rgba(5,6,11,.94)); }
   .hero > * { position: relative; }
@@ -70,6 +70,19 @@
   .countdown div { min-width: 64px; padding: 10px 6px; border-radius: 0; background: var(--a1); border: 0; color: #fff; }
   .countdown b { display: block; font-family: var(--display); font-size: 22px; line-height: 1; }
   .countdown span { font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* poster-style extras */
+  .brush { position: absolute; right: -6%; top: 6%; width: 62%; max-width: 360px; height: auto; pointer-events: none; z-index: 0; opacity: .95; }
+  .hero .brush { z-index: 0; }
+  .ticker { overflow: hidden; background: var(--a1); color: #fff; font-family: var(--display); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; padding: 9px 0; margin: 0 -16px; }
+  .ticker .track { display: inline-flex; animation: tick 22s linear infinite; }
+  .ticker span { padding-right: 36px; }
+  @keyframes tick { to { transform: translateX(-50%); } }
+  .halftone { position: relative; height: 150px; margin: 26px -16px 0; overflow: hidden; background: var(--text); }
+  .halftone::before { content: ""; position: absolute; inset: 0; background: radial-gradient(var(--bg) 38%, transparent 42%) 0 0 / 11px 11px; }
+  .halftone::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, var(--bg) 0%, transparent 35%, transparent 75%, var(--bg) 100%); }
+  .halftone i { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; background: var(--a1); clip-path: polygon(0 100%, 0 40%, 30% 10%, 55% 0, 78% 14%, 100% 36%, 100% 100%); z-index: 1; }
+  .pixel-rule { height: 10px; margin: 22px 0 0; background: repeating-linear-gradient(90deg, var(--text) 0 10px, transparent 10px 20px); opacity: .9; }
 
   /* buttons */
   .actions { display: grid; gap: 10px; margin: 24px 0 8px; }
@@ -103,13 +116,14 @@
   .sec-head button { color: var(--a1); font-weight: 600; }
 
   .program { list-style: none; margin: 0; padding: 0; position: relative; }
-  .program::before { content: none; }
+  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: var(--a1); }
   .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
-  .program li::before { content: none; }
+  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 0; background: var(--bg); border: 2px solid var(--text); }
   .program time { color: var(--a2); font-family: var(--display); font-variant-numeric: tabular-nums; min-width: 58px; font-size: 14px; }
   .program li.done { opacity: .45; }
   .program li.now span { font-weight: 700; }
-  .program li.now { color: var(--a2); }
+  .program li.now { color: var(--text); }
+  .program li.now::before { background: var(--a1); border-color: var(--a1); }
   .program li.now::after { content: "TEĎ"; margin-left: auto; font-family: var(--display); font-size: 11px; letter-spacing: .08em; padding: 3px 8px; border-radius: 0; background: var(--a1); color: #fff; }
 
   /* grid */
@@ -766,11 +780,16 @@ function homeHtml() {
   var authors = {}; S.photos.forEach(function (p) { if (p.a) authors[p.a.toLowerCase()] = 1; });
   var cover = c.coverId ? ' cover" style="background-image:url(\'' + esc(IMG.thumb(c.coverId, 1600)) + '\')' : '';
   var h = '<div class="wrap">';
-  h += '<header class="hero' + cover + '">' +
+  var brush = '<svg class="brush" viewBox="0 0 300 420" aria-hidden="true"><path d="M150 4 C 120 90, 60 170, 64 300 C 66 350, 94 380, 120 404 C 112 330, 128 250, 150 200 C 170 250, 190 330, 182 404 C 210 380, 236 350, 236 300 C 240 170, 180 90, 150 4 Z" fill="#2452e8"/><path d="M40 320 C 30 280, 40 250, 58 236 C 66 290, 90 320, 116 330 C 96 346, 62 344, 40 320 Z" fill="#2452e8"/><path d="M262 320 C 272 280, 262 250, 244 236 C 236 290, 212 320, 186 330 C 206 346, 240 344, 262 320 Z" fill="#2452e8"/></svg>';
+  var tickerTxt = [c.title, fmtDate(c.date, true), c.place].filter(Boolean).join('  ✦  ') + '  ✦  ';
+  var tickerRow = '<span>' + esc(tickerTxt) + '</span>';
+  h += '<header class="hero' + cover + '">' + brush +
     (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
     '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
-    (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) + '</header>';
+    (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) + '</header>' +
+    '<div class="ticker" aria-hidden="true"><div class="track">' + tickerRow + tickerRow + tickerRow + tickerRow + '</div></div>' +
+    '<div class="halftone" aria-hidden="true"><i></i></div>';
 
   if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
 
