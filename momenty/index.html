@@ -86,6 +86,8 @@
   .mini-avs .mini-av:first-child { margin-left: 0; }
   .mini-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
   .mini-n { flex: none; font-size: 13px; font-weight: 700; }
+  .dropzone { position: fixed; inset: 0; z-index: 90; background: rgba(29,29,27,.88); display: grid; place-items: center; border: 4px dashed var(--a1); pointer-events: none; }
+  .dropzone div { font-family: var(--display); font-size: 24px; text-transform: uppercase; color: #fff; text-align: center; padding: 20px; }
   /* poster-style extras */
   .poster-art { margin: 26px auto 0; max-width: 420px; border: 2px solid var(--text); box-shadow: 10px 10px 0 var(--a1); background: var(--bg); position: relative; }
   .poster-art img { width: 100%; height: auto; display: block; }
@@ -365,6 +367,7 @@
 
 <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
 <input type="file" id="pickIn" accept="image/*" multiple hidden>
+<input type="file" id="dirIn" webkitdirectory directory multiple hidden>
 
 <script>
   var PARAMS = (function () { var o = {}; new URLSearchParams(location.search).forEach(function (v, k) { o[k] = v; }); return o; })();
@@ -658,7 +661,8 @@ function toB64(blob) {
 }
 
 function addFiles(files, fromCamera) {
-  files = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type) || !f.type; });
+  files = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type) || /\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name || ''); });
+  if (!files.length) { toast('Nenašel jsem žádné fotky (JPG, PNG, HEIC).'); return; }
   if (!files.length) return;
   S.total += files.length; updateBar();
   var chain = Promise.resolve();
@@ -1307,7 +1311,15 @@ document.addEventListener('click', function (e) {
   if (a === 'selclear') { S.sel = {}; render(true); return; }
   if (a === 'seldl') { downloadSelected(); return; }
   if (a === 'cam') $('#camIn').click();
-  else if (a === 'pick') $('#pickIn').click();
+  else if (a === 'pick') {
+    var canDir = 'webkitdirectory' in document.createElement('input') && window.matchMedia && matchMedia('(pointer: fine)').matches;
+    if (!canDir) { $('#pickIn').click(); return; }
+    modal('<h2>Nahrát fotky</h2><p class="muted small">Vyber jednotlivé fotky, nebo celou složku z počítače.</p>' +
+      '<button class="btn btn-main" style="width:100%;min-height:54px;font-size:16px;margin-top:8px" data-act="pickfiles">Vybrat fotky</button>' +
+      '<button class="btn btn-glass" style="width:100%;margin-top:10px" data-act="pickdir">Nahrát celou složku</button>');
+  }
+  else if (a === 'pickfiles') { $('#modal').hidden = true; $('#pickIn').click(); }
+  else if (a === 'pickdir') { $('#modal').hidden = true; $('#dirIn').click(); }
   else if (a === 'share') showQrModal();
   else if (a === 'login') showLogin();
   else if (a === 'logout') { S.role = ''; S.admin = ''; save('admin', ''); go('home'); toast('Odhlášeno'); }
@@ -1321,6 +1333,41 @@ document.addEventListener('click', function (e) {
 
 $('#camIn').onchange = function () { addFiles(this.files, true); this.value = ''; };
 $('#pickIn').onchange = function () { addFiles(this.files, false); this.value = ''; };
+$('#dirIn').onchange = function () { addFiles(this.files, false); this.value = ''; };
+/* přetažení fotek nebo celých složek myší na stránku */
+(function () {
+  function readEntry(entry, out) {
+    return new Promise(function (res) {
+      if (!entry) return res();
+      if (entry.isFile) return entry.file(function (f) { out.push(f); res(); }, function () { res(); });
+      if (!entry.isDirectory) return res();
+      var reader = entry.createReader(), all = [];
+      (function more() {
+        reader.readEntries(function (batch) {
+          if (!batch.length) return Promise.all(all.map(function (e) { return readEntry(e, out); })).then(function () { res(); });
+          all = all.concat(Array.prototype.slice.call(batch)); more();
+        }, function () { res(); });
+      })();
+    });
+  }
+  var drop = document.createElement('div');
+  drop.className = 'dropzone'; drop.innerHTML = '<div>Pusť fotky nebo složku sem</div>'; drop.hidden = true;
+  document.body.appendChild(drop);
+  var depth = 0;
+  document.addEventListener('dragenter', function (e) { if (!e.dataTransfer || [].indexOf.call(e.dataTransfer.types || [], 'Files') < 0 || PARAMS.v) return; depth++; drop.hidden = false; });
+  document.addEventListener('dragleave', function () { depth = Math.max(0, depth - 1); if (!depth) drop.hidden = true; });
+  document.addEventListener('dragover', function (e) { if (e.dataTransfer && [].indexOf.call(e.dataTransfer.types || [], 'Files') > -1) e.preventDefault(); });
+  document.addEventListener('drop', function (e) {
+    if (!e.dataTransfer || PARAMS.v) return;
+    e.preventDefault(); depth = 0; drop.hidden = true;
+    var items = e.dataTransfer.items, out = [];
+    if (items && items.length && items[0].webkitGetAsEntry) {
+      var entries = Array.prototype.map.call(items, function (it) { return it.webkitGetAsEntry && it.webkitGetAsEntry(); });
+      var plain = Array.prototype.slice.call(e.dataTransfer.files || []);
+      Promise.all(entries.map(function (en) { return readEntry(en, out); })).then(function () { addFiles(out.length ? out : plain, false); });
+    } else addFiles(e.dataTransfer.files, false);
+  });
+})();
 
 /* ============================================================== modals */
 function modal(html) {
