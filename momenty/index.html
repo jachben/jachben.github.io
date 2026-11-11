@@ -79,6 +79,13 @@
   .selbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 12px 16px calc(12px + var(--safe-b)); background: var(--bg); border-top: 3px solid var(--a1); }
   .selbar .selcount { font-family: var(--display); font-size: 13px; margin-right: auto; }
   .selbar .pill[disabled] { opacity: .4; }
+  /* mini komentáře pod fotkou */
+  .mini-row { flex-basis: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(255,255,255,.12); border-radius: 0; text-align: left; color: #fff; min-width: 0; }
+  .mini-avs { display: flex; flex: none; }
+  .mini-av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 700 12px 'Space Grotesk', sans-serif; border: 2px solid #111; margin-left: -7px; }
+  .mini-avs .mini-av:first-child { margin-left: 0; }
+  .mini-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .mini-n { flex: none; font-size: 13px; font-weight: 700; }
   /* poster-style extras */
   .poster-art { margin: 26px auto 0; max-width: 420px; border: 2px solid var(--text); box-shadow: 10px 10px 0 var(--a1); background: var(--bg); position: relative; }
   .poster-art img { width: 100%; height: auto; display: block; }
@@ -536,7 +543,7 @@ var S = {
   local: {}, queue: [], done: 0, total: 0, failed: 0,
   admin: PARAMS.admin || load('admin', ''), role: '', driveUrl: '', photosUrl: '', photosError: '',
   pending: [], hidden: [], coAdmins: [], admTab: 'pending', screen: null,
-  lbList: [], lbIndex: 0, selMode: false, sel: {}, blobs: {}, blobOrder: [],
+  lbList: [], lbIndex: 0, selMode: false, sel: {}, blobs: {}, blobOrder: [], cm: {},
 };
 var mySet = {}; S.my.forEach(function (id) { mySet[id] = 1; });
 function isAdmin() { return !!S.role; }
@@ -1354,13 +1361,14 @@ function showLb() {
   $('#lbWho').textContent = p.a || 'Anonym';
   $('#lbWhen').textContent = ago(p.t) + ' · ' + (S.lbIndex + 1) + ' / ' + S.lbList.length;
   var L = S.liked[p.id] || {}, c = S.cfg;
-  var bot = (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h">♥ ' + (p.hr || '') + '</button><button class="pill' + (L.l ? ' on' : '') + '" data-r="l">😂 ' + (p.lr || '') + '</button>' : '') +
-    (c.comments ? '<button class="pill" data-cm>💬 ' + (p.c || '') + '</button>' : '') +
+  var bot = (c.comments ? '<button class="mini-row" data-cm id="miniRow"></button>' : '') + (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h">♥ ' + (p.hr || '') + '</button><button class="pill' + (L.l ? ' on' : '') + '" data-r="l">😂 ' + (p.lr || '') + '</button>' : '') +
+    (c.comments ? '<button class="pill" data-cm-open>💬 Komentovat' + (p.c ? ' · ' + p.c : '') + '</button>' : '') +
     '<button class="pill" data-save>⬇ Uložit do Fotek</button>' +
     '<button class="pill" data-share aria-label="Sdílet">↗</button>' +
     (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>');
   if (isAdmin()) bot += '<button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button>';
   $('#lbBot').innerHTML = bot;
+  loadMini(p);
   [S.lbIndex + 1, S.lbIndex - 1].forEach(function (j) { var q = S.lbList[j]; if (q && !q._local) new Image().src = IMG.big(q.id); });
   if (!S.blobs[p.id] && !p._local) fetchPhotoFile(p.id).catch(function () {});
   if (sheet.classList.contains('show')) loadComments();
@@ -1398,7 +1406,7 @@ $('#lbBot').addEventListener('click', function (e) {
     L[k] = on; S.liked[p.id] = L; save('liked', S.liked);
     p[key] = Math.max(0, (p[key] || 0) + (on ? 1 : -1)); showLb();
     api('react', p.id, k, on ? 1 : -1).then(function (n) { p[key] = n; if (!lb.hidden && curPhoto() === p) showLb(); }).catch(function () {});
-  } else if (t.hasAttribute('data-cm')) openSheet();
+  } else if (t.hasAttribute('data-cm') || t.hasAttribute('data-cm-open')) openSheet();
   else if (t.hasAttribute('data-share')) {
     var url = IMG.big(p.id);
     if (navigator.share) navigator.share({ title: S.cfg.title, url: url }).catch(function () {});
@@ -1419,6 +1427,26 @@ function loadComments() {
   $('#cmList').innerHTML = '<div class="empty small">Načítám…</div>';
   api('listComments', p.id).then(function (l) { if (curPhoto() === p) renderComments(l); }).catch(function () { $('#cmList').innerHTML = '<div class="empty small">Nepodařilo se načíst.</div>'; });
 }
+var MINI_COL = [['#2452e8', '#fff'], ['#5c82ff', '#fff'], ['#f4f4ef', '#1d1d1b'], ['#8fb0ff', '#1d1d1b'], ['#0d2a9c', '#fff']];
+function miniColor(name) { var h = 0, t = String(name || '?'); for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return MINI_COL[h % MINI_COL.length]; }
+function renderMini(list) {
+  var el = $('#miniRow'); if (!el) return;
+  if (!list || !list.length) { el.innerHTML = '<span class="mini-txt">💬 Zatím bez komentářů, klepni a buď první</span>'; return; }
+  var avs = '';
+  list.slice(-5).forEach(function (c) {
+    var col = miniColor(c.id || c.n || c.x), nm = (c.n || '').trim();
+    avs += '<span class="mini-av" style="background:' + col[0] + ';color:' + col[1] + '" title="' + esc(nm || 'Anonym') + '">' + (nm ? esc(nm.charAt(0).toUpperCase()) : '💬') + '</span>';
+  });
+  var last = list[list.length - 1];
+  el.innerHTML = '<span class="mini-avs">' + avs + '</span><span class="mini-txt"><b>' + esc(last.n || 'Anonym') + '</b> ' + esc(last.x) + '</span><span class="mini-n">💬 ' + list.length + '</span>';
+}
+function loadMini(p) {
+  if (!S.cfg.comments) return;
+  if (!p.c) { renderMini([]); return; }
+  if (S.cm[p.id] && S.cm[p.id].length === p.c) { renderMini(S.cm[p.id]); return; }
+  renderMini(null);
+  api('listComments', p.id).then(function (l) { S.cm[p.id] = l; if (curPhoto() === p) renderMini(l); }).catch(function () {});
+}
 function renderComments(l) {
   var p = curPhoto(); if (!p) return;
   p.c = l.length;
@@ -1426,7 +1454,8 @@ function renderComments(l) {
     return '<div class="cm"><b>' + esc(c.n || 'Anonym') + '</b><p>' + esc(c.x) + '</p><div class="meta"><span>' + ago(c.t) + '</span>' +
       (isAdmin() ? '<button data-delcm="' + esc(c.id) + '">Smazat</button>' : '') + '</div></div>';
   }).join('') : '<div class="empty small">Zatím žádný komentář. Napiš první!</div>';
-  var b = $('#lbBot [data-cm]'); if (b) b.textContent = '💬 ' + (p.c || '');
+  S.cm[p.id] = l; renderMini(l);
+  var b = $('#lbBot [data-cm-open]'); if (b) b.textContent = '💬 Komentovat' + (p.c ? ' · ' + p.c : '');
 }
 $('#cmList').addEventListener('click', function (e) {
   var b = e.target.closest('[data-delcm]'); if (!b) return;
