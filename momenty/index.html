@@ -536,7 +536,7 @@ var S = {
   local: {}, queue: [], done: 0, total: 0, failed: 0,
   admin: PARAMS.admin || load('admin', ''), role: '', driveUrl: '', photosUrl: '', photosError: '',
   pending: [], hidden: [], coAdmins: [], admTab: 'pending', screen: null,
-  lbList: [], lbIndex: 0, selMode: false, sel: {},
+  lbList: [], lbIndex: 0, selMode: false, sel: {}, blobs: {}, blobOrder: [],
 };
 var mySet = {}; S.my.forEach(function (id) { mySet[id] = 1; });
 function isAdmin() { return !!S.role; }
@@ -725,31 +725,76 @@ function updateBar(mode) {
 }
 window.addEventListener('beforeunload', function (e) { if (S.queue.length) { e.preventDefault(); e.returnValue = ''; } });
 
+/* ======================================= uložení do Fotek (nabídka sdílení) */
+function fileFromBlob(id, b) {
+  var type = b.type || 'image/jpeg';
+  var ext = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+  return new File([b], 'foto-' + id + '.' + ext, { type: type });
+}
+function canSaveToPhotos(files) { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: files })); }
+function fetchPhotoFile(id) {
+  if (S.blobs[id]) return Promise.resolve(S.blobs[id]);
+  return fetch(IMG.big(id)).then(function (r) { if (!r.ok) throw new Error('x'); return r.blob(); }).then(function (b) {
+    var f = fileFromBlob(id, b);
+    S.blobs[id] = f; S.blobOrder.push(id);
+    while (S.blobOrder.length > 8) delete S.blobs[S.blobOrder.shift()];
+    return f;
+  });
+}
+// Nabídka sdílení s fotkami: na iPhonu obsahuje "Uložit obrázek", což je uloží přímo do Fotek.
+function shareFiles(files, done) {
+  if (!canSaveToPhotos(files)) {
+    files.forEach(function (f, k) { setTimeout(function () { download(f, f.name); }, k * 500); });
+    return;
+  }
+  navigator.share({ files: files }).then(function () { done && done(true); }).catch(function (e) {
+    if (e && e.name === 'AbortError') return done && done(false);
+    toast('Nepodařilo se otevřít ukládání do Fotek. Zkus to znovu.');
+    done && done(false);
+  });
+}
+function savePhoto(p) {
+  var ready = S.blobs[p.id];
+  if (ready) return shareFiles([ready]);
+  toast('Připravuji fotku v plné kvalitě…', null, null, 60000);
+  fetchPhotoFile(p.id).then(function (f) {
+    toast('Fotka je připravená', 'Uložit do Fotek', function () { shareFiles([f]); }, 60000);
+  }).catch(function () { toast('Fotku se nepodařilo stáhnout. Zkus to znovu.'); });
+}
+
 /* =================================================== výběr a stažení fotek */
 function downloadSelected() {
   var ids = Object.keys(S.sel);
   if (!ids.length) return;
   var files = [], failed = 0, i = 0;
-  toast('Připravuji ' + ids.length + ' ' + plural(ids.length, 'fotku', 'fotky', 'fotek') + ' v plné kvalitě…', null, null, 120000);
+  toast('Připravuji ' + ids.length + ' ' + plural(ids.length, 'fotku', 'fotky', 'fotek') + ' v plné kvalitě…', null, null, 300000);
   function next() {
     if (i >= ids.length) return done();
     var id = ids[i++];
-    fetch(IMG.big(id)).then(function (r) { if (!r.ok) throw new Error('x'); return r.blob(); }).then(function (b) {
-      var ext = ((b.type || 'image/jpeg').split('/')[1] || 'jpg').replace('jpeg', 'jpg');
-      files.push(new File([b], 'foto-' + id + '.' + ext, { type: b.type || 'image/jpeg' }));
-      toast('Připravuji ' + i + ' z ' + ids.length + '…', null, null, 120000);
+    fetchPhotoFile(id).then(function (f) {
+      files.push(f);
+      toast('Připravuji ' + i + ' z ' + ids.length + '…', null, null, 300000);
     }).catch(function () { failed++; }).then(next);
   }
   function save() {
-    if (navigator.canShare && navigator.canShare({ files: files })) {
-      navigator.share({ files: files }).catch(function (e) { if (e && e.name !== 'AbortError') files.forEach(function (f, k) { setTimeout(function () { download(f, f.name); }, k * 500); }); });
-    } else {
+    if (!canSaveToPhotos(files.slice(0, 1))) {
       files.forEach(function (f, k) { setTimeout(function () { download(f, f.name); }, k * 500); });
+      return;
     }
+    var chunk = files.splice(0, 20);
+    navigator.share({ files: chunk }).then(function () {
+      if (files.length) toast('Uloženo ' + chunk.length + '. Zbývá ' + files.length + '.', 'Uložit další', save, 300000);
+      else toast('Hotovo. Fotky jsou ve Fotkách ✓');
+    }).catch(function (e) {
+      files = chunk.concat(files);
+      if (e && e.name === 'AbortError') toast('Ukládání zrušeno', 'Uložit znovu', save, 300000);
+      else toast('Nepodařilo se otevřít ukládání do Fotek.', 'Zkusit znovu', save, 300000);
+    });
   }
   function done() {
     if (!files.length) { toast('Fotky se nepodařilo stáhnout. Zkus to znovu.'); return; }
-    toast('Připraveno: ' + files.length + ' ' + plural(files.length, 'fotka', 'fotky', 'fotek') + (failed ? ' (' + failed + ' se nepodařilo)' : ''), 'Uložit', save, 120000);
+    var n = files.length;
+    toast('Připraveno: ' + n + ' ' + plural(n, 'fotka', 'fotky', 'fotek') + (failed ? ' (' + failed + ' se nepodařilo)' : ''), 'Uložit do Fotek', save, 300000);
   }
   next();
 }
@@ -1311,12 +1356,13 @@ function showLb() {
   var L = S.liked[p.id] || {}, c = S.cfg;
   var bot = (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h">♥ ' + (p.hr || '') + '</button><button class="pill' + (L.l ? ' on' : '') + '" data-r="l">😂 ' + (p.lr || '') + '</button>' : '') +
     (c.comments ? '<button class="pill" data-cm>💬 ' + (p.c || '') + '</button>' : '') +
-    '<a class="pill" href="' + esc(IMG.dl(p.id)) + '" target="_blank" rel="noopener">⬇ Stáhnout</a>' +
+    '<button class="pill" data-save>⬇ Uložit do Fotek</button>' +
     '<button class="pill" data-share aria-label="Sdílet">↗</button>' +
     (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>');
   if (isAdmin()) bot += '<button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button>';
   $('#lbBot').innerHTML = bot;
   [S.lbIndex + 1, S.lbIndex - 1].forEach(function (j) { var q = S.lbList[j]; if (q && !q._local) new Image().src = IMG.big(q.id); });
+  if (!S.blobs[p.id] && !p._local) fetchPhotoFile(p.id).catch(function () {});
   if (sheet.classList.contains('show')) loadComments();
 }
 function stepLb(d) {
@@ -1360,7 +1406,8 @@ $('#lbBot').addEventListener('click', function (e) {
   } else if (t.hasAttribute('data-report')) {
     if (!confirm('Nahlásit tuto fotku jako nevhodnou?')) return;
     api('report', p.id).then(function () { toast('Díky, fotka nahlášena'); }).catch(function () {});
-  } else if (t.hasAttribute('data-project')) screenCmd({ show: p.id });
+  } else if (t.hasAttribute('data-save')) savePhoto(p);
+  else if (t.hasAttribute('data-project')) screenCmd({ show: p.id });
 });
 
 /* comments */
