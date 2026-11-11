@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05060b">
+<title>Momenty · Maturitní ples</title>
+<meta name="description" content="Sdílená galerie z plesu. Naskenuj, vyfoť, hotovo. Bez aplikace a bez registrace.">
+<meta property="og:title" content="Momenty · Maturitní ples">
+<meta property="og:description" content="Naskenuj, vyfoť, hotovo. Všechny fotky z plesu na jednom místě.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Unbounded:wght@800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #05060b; --text: #eef1ff; --muted: #9aa0bd; --a1: #22e5ff; --a2: #8b5cff; --a3: #ff3df2; color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 16px/1.5 'Space Grotesk', system-ui, sans-serif; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
+  .boot { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px max(16px, env(safe-area-inset-left, 0px)); transition: opacity .5s; }
+  .boot.gone { opacity: 0; pointer-events: none; }
+  .bg { position: fixed; inset: 0; overflow: hidden; z-index: -1; }
+  .bg i { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(90px); opacity: .28; animation: drift 22s ease-in-out infinite alternate; }
+  .bg i:nth-child(1) { background: var(--a1); top: -35vmax; left: -20vmax; }
+  .bg i:nth-child(2) { background: var(--a2); top: 10vmax; right: -35vmax; animation-delay: -7s; }
+  .bg i:nth-child(3) { background: var(--a3); bottom: -45vmax; left: 0; opacity: .18; animation-delay: -14s; }
+  @keyframes drift { to { transform: translate(8vmax, 6vmax) scale(1.15); } }
+  h1 { font: 800 clamp(30px, 8vw, 48px)/1.05 Unbounded, 'Space Grotesk', sans-serif; margin: 0 0 12px; background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  p { color: var(--muted); margin: 0 auto; max-width: 380px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--a1); box-shadow: 0 0 14px var(--a1); margin: 0 auto 20px; animation: blink 1.1s infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  @media (prefers-reduced-motion: reduce) { .bg i, .dot { animation: none; } }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="boot" id="boot">
+  <div>
+    <div class="dot"></div>
+    <h1>Momenty</h1>
+    <p id="msg">Načítám galerii…</p>
+  </div>
+</div>
+<script>
+  // Adresa aplikace z Google Apps Script (končí na /exec). Doplní se po nasazení.
+  var EXEC_URL = '';
+
+  (function () {
+    var boot = document.getElementById('boot');
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(EXEC_URL)) {
+      document.getElementById('msg').textContent = 'Galerie se právě připravuje. Zkus to prosím za chvíli.';
+      return;
+    }
+    var f = document.createElement('iframe');
+    f.title = 'Momenty galerie';
+    f.allow = 'camera; microphone; clipboard-read; clipboard-write; web-share; fullscreen; autoplay';
+    f.setAttribute('allowfullscreen', '');
+    f.src = EXEC_URL + location.search;
+    f.onload = function () { boot.classList.add('gone'); };
+    document.body.appendChild(f);
+    setTimeout(function () { boot.classList.add('gone'); }, 12000);
+  })();
+</script>
+</body>
+</html>
