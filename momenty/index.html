@@ -123,12 +123,12 @@
   .sec-head button { color: var(--a1); font-weight: 600; }
 
   .program { list-style: none; margin: 0; padding: 0; position: relative; }
-  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: rgba(255,255,255,.14); border-radius: 2px; }
-  .program::after { content: ""; position: absolute; left: 61px; top: 8px; width: 2px; height: calc((100% - 16px) * var(--fill, 0)); background: linear-gradient(#0d2a9c, #2452e8, #5c82ff); border-radius: 2px; transition: height .6s ease; }
+  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 3px; background: #2452e8; opacity: .35; border-radius: 2px; }
+  .program::after { content: ""; position: absolute; left: 61px; top: 8px; width: 3px; height: calc((100% - 16px) * var(--fill, 0)); background: linear-gradient(#2452e8, #5c82ff); border-radius: 2px; transition: height .6s ease; z-index: 0; }
   .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
-  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid rgba(255,255,255,.35); z-index: 1; }
+  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid #5c82ff; z-index: 1; }
   .program time { color: #5c82ff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 58px; font-size: 15px; }
-  .program li.done::before { background: #2452e8; border-color: #2452e8; }
+  .program li.done::before { background: #2452e8; border-color: #5c82ff; }
   .program li.now { color: #fff; }
   .program li.now span { font-weight: 700; }
   .program li.now::before { background: #5c82ff; border-color: #fff; box-shadow: 0 0 16px #5c82ff; width: 14px; height: 14px; left: 55px; top: 14px; }
