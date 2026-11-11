@@ -96,13 +96,21 @@
   .mat-grid button:hover img { transform: scale(1.04); }
   .mv { position: fixed; inset: 0; z-index: 42; background: #000; display: flex; flex-direction: column; }
   .mv-top { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + var(--safe-t)) 14px 8px; font-family: var(--display); font-size: 13px; }
-  .mv-top .icon-btn { background: rgba(255,255,255,.12); border: 0; }
+  .mv-top .icon-btn { background: rgba(255,255,255,.12); border: 0; font: 400 28px/1 'Space Grotesk', sans-serif; color: #fff; }
+  .cls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cls-tile { display: flex; flex-direction: column; gap: 6px; padding: 10px 10px 14px; background: var(--glass); border: 2px solid #2452e8; text-align: left; color: var(--text); }
+  .cls-tile:hover { background: #2a2a27; }
+  .cls-prev { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; aspect-ratio: 1; background: #111; overflow: hidden; }
+  .cls-prev img { min-height: 0; }
+  .cls-prev img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .cls-empty { grid-column: 1 / -1; display: grid; place-items: center; font-style: normal; font-size: 46px; opacity: .6; }
+  .cls-tile b { font-family: var(--display); font-size: 22px; letter-spacing: .04em; }
   .mat-grid.half button { aspect-ratio: 1; position: relative; }
   .mat-grid.half img { object-position: 50% 0; }
-  .mat-n { position: absolute; right: 6px; bottom: 6px; background: var(--a1); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; }
+  .mat-n { position: absolute; right: 6px; bottom: 6px; background: #2452e8; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; }
   .pc-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .pc-photo { height: 46vh; background: #111; }
-  .pc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; display: block; }
+  .pc-photo { height: 34vh; background: #111; display: flex; justify-content: center; padding: 10px 0; }
+  .pc-photo img { height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block; }
   .pc-body { padding: 12px 14px calc(24px + var(--safe-b)); max-width: 640px; margin: 0 auto; }
   .mv-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
   .mv-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -780,7 +788,7 @@ function ensureMessages() {
 function matGridHtml(cls) {
   var ids = CLASSES[cls] || [];
   if (!ids.length) return '<div class="card empty">Fotky této třídy zatím nejsou.</div>';
-  return '<div class="mat-grid half">' + ids.map(function (id) {
+  return '<div class="mat-grid">' + ids.map(function (id) {
     var n = matMsgs(id).length;
     return '<button data-matid="' + id + '" aria-label="Maturant"><img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg">' + (n ? '<span class="mat-n">✉ ' + n + '</span>' : '') + '</button>';
   }).join('') + '</div>';
@@ -812,7 +820,7 @@ function openPerson(id) {
   el.hidden = false; document.body.style.overflow = 'hidden';
   ensureMessages().then(function () { if (S.matId === id && $('#pcList')) $('#pcList').innerHTML = personListHtml(id); });
 }
-function closeMat() { var el = $('#mv'); if (el) el.hidden = true; document.body.style.overflow = ''; S.matId = null; if (S.view === 'messages') { var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls || Object.keys(CLASSES)[0]); } }
+function closeMat() { var el = $('#mv'); if (el) el.hidden = true; document.body.style.overflow = ''; S.matId = null; if (S.view === 'messages' && S.cls) { var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls); } }
 function stepPerson(d) { var ids = CLASSES[classOf(S.matId)] || [], k = ids.indexOf(S.matId); if (!ids.length) return; openPerson(ids[(k + d + ids.length) % ids.length]); }
 function bindMat(el) {
   el.addEventListener('click', function (e) {
@@ -981,7 +989,7 @@ function tileHtml(p, i) {
 }
 
 /* =============================================================== views */
-function go(view) { if (view !== 'settings') draft = null; if (view !== 'gallery') { S.selMode = false; S.sel = {}; } S.view = view; S.shown = 60; render(); window.scrollTo(0, 0); }
+function go(view) { if (view === 'messages' && S.view !== 'messages') S.cls = null; if (view !== 'settings') draft = null; if (view !== 'gallery') { S.selMode = false; S.sel = {}; } S.view = view; S.shown = 60; render(); window.scrollTo(0, 0); }
 function refresh() { if (PARAMS.v || S.view === 'messages' || S.view === 'settings') return; render(true); }
 
 function render(soft) {
@@ -1106,12 +1114,22 @@ function galleryHtml() {
 
 function messagesHtml() {
   var c = S.cfg, names = Object.keys(CLASSES);
-  if (!S.cls || names.indexOf(S.cls) < 0) S.cls = names[0];
-  var h = '<div class="wrap">' + topbar(esc(c.msgTitle || 'Vzkazy'));
+  if (S.cls && names.indexOf(S.cls) < 0) S.cls = null;
+  var h;
+  if (S.cls) {
+    var ids = CLASSES[S.cls] || [];
+    h = '<div class="wrap"><div class="topbar"><button class="icon-btn" data-clsback aria-label="Zpět na třídy">' + I.back + '</button><h2>Třída ' + esc(S.cls) + '</h2><span class="muted small" style="margin-left:auto">' + ids.length + ' ' + plural(ids.length, 'fotka', 'fotky', 'fotek') + '</span></div>' +
+      '<p class="muted small" style="margin:0 0 10px">Klepni na fotku a napiš vzkaz na památku.</p><div id="matGrid">' + matGridHtml(S.cls) + '</div></div>';
+    return h;
+  }
+  h = '<div class="wrap">' + topbar(esc(c.msgTitle || 'Vzkazy'));
   if (names.length) {
-    h += '<p class="muted small" style="margin:0 0 10px">Klepni na maturanta a napiš mu vzkaz na památku.</p><div class="tabs">' +
-      names.map(function (n) { return '<button class="tab' + (n === S.cls ? ' on' : '') + '" data-cls="' + esc(n) + '">' + esc(n) + ' · ' + (CLASSES[n] || []).length + '</button>'; }).join('') + '</div>' +
-      '<div id="matGrid">' + matGridHtml(S.cls) + '</div>';
+    h += '<p class="muted small" style="margin:0 0 10px">Vyber třídu a pak maturanta, kterému chceš napsat.</p><div class="cls-grid">' + names.map(function (n) {
+      var ids = CLASSES[n] || [], prev = ids.slice(0, 4);
+      return '<button class="cls-tile" data-cls="' + esc(n) + '"><span class="cls-prev">' +
+        (prev.length ? prev.map(function (id) { return '<img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg">'; }).join('') : '<i class="cls-empty">📁</i>') +
+        '</span><b>' + esc(n) + '</b><span class="muted small">' + ids.length + ' ' + plural(ids.length, 'fotka', 'fotky', 'fotek') + '</span></button>';
+    }).join('') + '</div>';
   }
   h += '<form class="card glow" id="msgForm" style="margin-top:24px"><h2 style="margin:0 0 6px">Vzkaz pro všechny</h2><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
     '<input class="inp" name="from" maxlength="40" placeholder="Od koho" value="' + esc(S.name) + '">' +
@@ -1130,7 +1148,7 @@ function msgListHtml() {
       (isAdmin() ? '<button data-delmsg="' + esc(m.id) + '">Smazat</button>' : '') + '</div></div>';
   }).join('');
 }
-function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgListHtml(); var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls); }
+function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgListHtml(); var g = $('#matGrid'); if (g && S.cls) g.innerHTML = matGridHtml(S.cls); }
 
 function rulesHtml() {
   var c = S.cfg;
@@ -1402,11 +1420,12 @@ function bindView() {
 }
 
 document.addEventListener('click', function (e) {
-  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom],[data-cls],[data-matid]');
+  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom],[data-cls],[data-clsback],[data-matid]');
   if (!t) return;
   if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
   if (t.hasAttribute('data-matid')) { openPerson(t.getAttribute('data-matid')); return; }
-  if (t.hasAttribute('data-cls')) { S.cls = t.getAttribute('data-cls'); var g = $('#matGrid'); if (g) g.innerHTML = matGridHtml(S.cls); document.querySelectorAll('[data-cls]').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-cls') === S.cls); }); return; }
+  if (t.hasAttribute('data-cls')) { S.cls = t.getAttribute('data-cls'); render(); window.scrollTo(0, 0); return; }
+  if (t.hasAttribute('data-clsback')) { S.cls = null; render(); window.scrollTo(0, 0); return; }
   if (t.closest('#setForm')) return;
   if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.shown = 60; render(true); return; }
   if (t.hasAttribute('data-admtab')) { S.admTab = t.getAttribute('data-admtab'); render(true); return; }
