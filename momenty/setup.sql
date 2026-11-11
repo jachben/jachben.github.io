@@ -1,0 +1,308 @@
+-- Momenty: databáze a úložiště pro sdílenou galerii (Supabase).
+-- Spustit jednou v SQL editoru projektu. Opakované spuštění nic nerozbije.
+
+create extension if not exists pgcrypto with schema extensions;
+
+create table if not exists public.photos (
+  id text primary key,
+  author text not null default '',
+  created_at timestamptz not null default now(),
+  status text not null default 'published' check (status in ('published', 'pending', 'hidden', 'deleted')),
+  hearts int not null default 0,
+  laughs int not null default 0,
+  reports int not null default 0
+);
+create index if not exists photos_status_created on public.photos (status, created_at desc);
+
+create table if not exists public.comments (
+  id uuid primary key default gen_random_uuid(),
+  photo_id text not null references public.photos (id) on delete cascade,
+  name text not null default '',
+  body text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists comments_photo on public.comments (photo_id, created_at);
+
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  from_name text not null default '',
+  to_name text not null default '',
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.kv (
+  key text primary key,
+  value jsonb not null
+);
+
+create table if not exists public.admins (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  role text not null check (role in ('owner', 'coadmin')),
+  pw_hash text not null
+);
+
+-- Žádný přímý přístup zvenku: vše jde přes funkce níže.
+alter table public.photos enable row level security;
+alter table public.comments enable row level security;
+alter table public.messages enable row level security;
+alter table public.kv enable row level security;
+alter table public.admins enable row level security;
+
+insert into public.kv (key, value) values
+  ('settings', jsonb_build_object(
+    'title', 'Maturitní ples', 'subtitle', 'Třída 4.A · 2027', 'date', '2027-01-23', 'place', 'Kulturní dům',
+    'welcome', '', 'program', jsonb_build_array(
+      jsonb_build_array('19:00', 'Otevření sálu'), jsonb_build_array('20:00', 'Zahájení plesu'),
+      jsonb_build_array('20:05', 'Předtančení'), jsonb_build_array('20:15', 'Nástup a šerpování maturantů'),
+      jsonb_build_array('22:00', 'Just Dance'), jsonb_build_array('23:00', 'Losování hlavní tomboly'),
+      jsonb_build_array('00:00', 'Půlnoční překvapení'), jsonb_build_array('03:00', 'Ukončení plesu')),
+    'icloudUrl', 'https://photos.icloud.com/shared/album/002fZ6dtA_1JgorKH_iymFG4g',
+    'msgTitle', 'Vzkazy', 'msgSub', 'Napiš někomu pár slov na památku',
+    'maxSize', 0, 'moderation', false, 'showDriveLink', false, 'comments', true, 'reactions', true,
+    'theme', 'neon', 'font', 'unbounded', 'deleteAt', '', 'avatarId', '', 'coverId', '')),
+  ('screen', '{"paused": false, "speed": 6, "qr": true, "next": 0, "show": "", "showAt": 0}')
+on conflict (key) do nothing;
+
+/* ---------------------------------------------------------------- helpers */
+
+create or replace function public._settings() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select value from kv where key = 'settings'
+$$;
+
+create or replace function public._closed() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(nullif(_settings() ->> 'deleteAt', ''), '9999-12-31')::date <= (now() at time zone 'Europe/Prague')::date
+$$;
+
+create or replace function public._clean(s text, n int) returns text
+language sql immutable as $$
+  select left(btrim(regexp_replace(regexp_replace(coalesce(s, ''), '[<>\x01-\x1f]', ' ', 'g'), '\s+', ' ', 'g')), n)
+$$;
+
+create or replace function public._clean_multi(s text, n int) returns text
+language sql immutable as $$
+  select left(btrim(regexp_replace(regexp_replace(coalesce(s, ''), '[<>\x01-\x09\x0b-\x1f]', ' ', 'g'), '\n{3,}', E'\n\n', 'g')), n)
+$$;
+
+create or replace function public._photos_json(p_status text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', p.id, 'a', p.author, 't', (extract(epoch from p.created_at) * 1000)::bigint,
+      'hr', p.hearts, 'lr', p.laughs, 'r', p.reports,
+      'c', (select count(*) from comments c where c.photo_id = p.id)
+    ) order by p.created_at desc), '[]'::jsonb)
+  from photos p where p.status = p_status
+$$;
+
+/* ------------------------------------------------------------- public API */
+
+create or replace function public.list_photos() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select case when _closed() then '[]'::jsonb else _photos_json('published') end
+$$;
+
+create or replace function public.init() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('cfg', _settings(), 'photos', list_photos(), 'messages', (select count(*) from messages))
+$$;
+
+create or replace function public.add_photo(p_id text, p_author text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_status text;
+  v_existing text;
+begin
+  if p_id !~ '^[A-Za-z0-9-]{6,40}$' then raise exception 'Neplatná fotka'; end if;
+  if _closed() then raise exception 'Galerie už je uzavřená'; end if;
+  select status into v_existing from photos where id = p_id;
+  if v_existing is not null then
+    return jsonb_build_object('id', p_id, 'pending', v_existing <> 'published');
+  end if;
+  v_status := case when coalesce((_settings() ->> 'moderation')::boolean, false) then 'pending' else 'published' end;
+  insert into photos (id, author, status) values (p_id, _clean(p_author, 40), v_status);
+  return jsonb_build_object('id', p_id, 'pending', v_status = 'pending');
+end $$;
+
+create or replace function public.react(p_id text, p_kind text, p_delta int) returns int
+language plpgsql security definer set search_path = public as $$
+declare v int;
+begin
+  if p_kind = 'h' then
+    update photos set hearts = greatest(0, hearts + sign(p_delta)::int) where id = p_id returning hearts into v;
+  elsif p_kind = 'l' then
+    update photos set laughs = greatest(0, laughs + sign(p_delta)::int) where id = p_id returning laughs into v;
+  else
+    raise exception 'Neznámá reakce';
+  end if;
+  return coalesce(v, 0);
+end $$;
+
+create or replace function public.report(p_id text) returns int
+language plpgsql security definer set search_path = public as $$
+declare v int;
+begin
+  update photos set reports = reports + 1,
+    status = case when reports + 1 >= 3 and status = 'published' then 'hidden' else status end
+  where id = p_id returning reports into v;
+  return coalesce(v, 0);
+end $$;
+
+create or replace function public.list_comments(p_id text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object('id', id, 'n', name, 'x', body, 't', (extract(epoch from created_at) * 1000)::bigint)
+    order by created_at), '[]'::jsonb)
+  from comments where photo_id = p_id
+$$;
+
+create or replace function public.add_comment(p_id text, p_name text, p_text text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_text text := _clean(p_text, 400);
+begin
+  if not coalesce((_settings() ->> 'comments')::boolean, true) then raise exception 'Komentáře jsou vypnuté'; end if;
+  if v_text = '' then raise exception 'Prázdný komentář'; end if;
+  if not exists (select 1 from photos where id = p_id and status = 'published') then raise exception 'Fotka neexistuje'; end if;
+  insert into comments (photo_id, name, body) values (p_id, _clean(p_name, 40), v_text);
+  return list_comments(p_id);
+end $$;
+
+create or replace function public.list_messages() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object('id', id, 'from', from_name, 'to', to_name, 'text', body,
+    't', (extract(epoch from created_at) * 1000)::bigint) order by created_at desc), '[]'::jsonb)
+  from messages
+$$;
+
+create or replace function public.add_message(p_from text, p_to text, p_text text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_text text := _clean_multi(p_text, 800);
+begin
+  if v_text = '' then raise exception 'Prázdný vzkaz'; end if;
+  insert into messages (from_name, to_name, body) values (_clean(p_from, 40), _clean(p_to, 40), v_text);
+  return list_messages();
+end $$;
+
+create or replace function public.get_screen() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select value from kv where key = 'screen'
+$$;
+
+/* ------------------------------------------------------------------ admin */
+
+-- Nastaví heslo hlavního pořadatele, jen pokud ještě žádné není.
+create or replace function public.claim_owner(p_pw text) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if exists (select 1 from admins) then return false; end if;
+  if length(coalesce(p_pw, '')) < 6 then raise exception 'Heslo musí mít aspoň 6 znaků'; end if;
+  insert into admins (name, role, pw_hash) values ('Hlavní pořadatel', 'owner', crypt(p_pw, gen_salt('bf')));
+  return true;
+end $$;
+
+create or replace function public.admin(p_pw text, p_action text, p_a jsonb default null, p_b jsonb default null) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_role text;
+  v_s jsonb;
+  v_scr jsonb;
+  v_txt text;
+begin
+  select role into v_role from admins where pw_hash = crypt(coalesce(p_pw, ''), pw_hash) order by role = 'owner' desc limit 1;
+  if v_role is null then
+    perform pg_sleep(0.5);
+    raise exception 'Špatné heslo';
+  end if;
+
+  case p_action
+  when 'check' then
+    return jsonb_build_object('role', v_role, 'driveUrl', '', 'photosUrl', '', 'photosError', '',
+      'coAdmins', case when v_role = 'owner' then coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name)
+        from admins where role = 'coadmin'), '[]'::jsonb) else '[]'::jsonb end);
+  when 'pending' then return _photos_json('pending');
+  when 'hidden' then return _photos_json('hidden');
+  when 'approve', 'restore' then update photos set status = 'published', reports = 0 where id = p_a #>> '{}';
+  when 'hide' then update photos set status = 'hidden' where id = p_a #>> '{}';
+  when 'delete' then update photos set status = 'deleted' where id = p_a #>> '{}';
+  when 'delMsg' then
+    delete from messages where id::text = p_a #>> '{}';
+    return list_messages();
+  when 'delComment' then
+    delete from comments where id::text = p_b #>> '{}';
+    return list_comments(p_a #>> '{}');
+  when 'saveSettings' then
+    v_s := _settings();
+    v_s := v_s || jsonb_build_object(
+      'title', coalesce(nullif(_clean(p_a ->> 'title', 80), ''), v_s ->> 'title'),
+      'subtitle', _clean(p_a ->> 'subtitle', 120),
+      'date', case when coalesce(p_a ->> 'date', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'date' else '' end,
+      'place', _clean(p_a ->> 'place', 80),
+      'welcome', _clean_multi(p_a ->> 'welcome', 800),
+      'program', coalesce((select jsonb_agg(jsonb_build_array(_clean(r ->> 0, 16), _clean(r ->> 1, 140)))
+        from jsonb_array_elements(case when jsonb_typeof(p_a -> 'program') = 'array' then p_a -> 'program' else '[]'::jsonb end) r
+        where _clean(r ->> 0, 16) <> '' or _clean(r ->> 1, 140) <> ''), '[]'::jsonb),
+      'icloudUrl', case when coalesce(p_a ->> 'icloudUrl', '') ~ '^https://' then left(p_a ->> 'icloudUrl', 400) else '' end,
+      'msgTitle', coalesce(nullif(_clean(p_a ->> 'msgTitle', 60), ''), 'Vzkazy'),
+      'msgSub', _clean(p_a ->> 'msgSub', 120),
+      'maxSize', case when (p_a ->> 'maxSize') in ('0', '1600', '2560', '4000') then (p_a ->> 'maxSize')::int else 0 end,
+      'moderation', coalesce((p_a ->> 'moderation')::boolean, false),
+      'showDriveLink', false,
+      'comments', coalesce((p_a ->> 'comments')::boolean, true),
+      'reactions', coalesce((p_a ->> 'reactions')::boolean, true),
+      'theme', case when (p_a ->> 'theme') in ('neon', 'aurora', 'synth', 'gold', 'ice') then p_a ->> 'theme' else 'neon' end,
+      'font', case when (p_a ->> 'font') in ('unbounded', 'orbitron', 'syne', 'fraunces') then p_a ->> 'font' else 'unbounded' end,
+      'deleteAt', case when coalesce(p_a ->> 'deleteAt', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'deleteAt' else '' end);
+    update kv set value = v_s where key = 'settings';
+    return v_s;
+  when 'setImage' then
+    v_txt := p_a #>> '{}';
+    if v_txt not in ('avatarId', 'coverId') then raise exception 'Neznámý obrázek'; end if;
+    update kv set value = jsonb_set(value, array[v_txt], to_jsonb(coalesce(p_b #>> '{}', ''))) where key = 'settings';
+    return to_jsonb(coalesce(p_b #>> '{}', ''));
+  when 'screen' then
+    select value into v_scr from kv where key = 'screen';
+    if p_a ? 'paused' then v_scr := v_scr || jsonb_build_object('paused', (p_a ->> 'paused')::boolean); end if;
+    if (p_a ->> 'speed') in ('4', '6', '8', '12', '20') then v_scr := v_scr || jsonb_build_object('speed', (p_a ->> 'speed')::int); end if;
+    if p_a ? 'qr' then v_scr := v_scr || jsonb_build_object('qr', (p_a ->> 'qr')::boolean); end if;
+    if coalesce((p_a ->> 'next')::boolean, false) then v_scr := v_scr || jsonb_build_object('next', coalesce((v_scr ->> 'next')::int, 0) + 1); end if;
+    if p_a ? 'show' then v_scr := v_scr || jsonb_build_object('show', coalesce(p_a ->> 'show', ''), 'showAt', (extract(epoch from now()) * 1000)::bigint); end if;
+    update kv set value = v_scr where key = 'screen';
+    return v_scr;
+  when 'addCoAdmin' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    if _clean(p_a #>> '{}', 40) = '' or length(coalesce(p_b #>> '{}', '')) < 6 then raise exception 'Jméno a heslo (aspoň 6 znaků)'; end if;
+    insert into admins (name, role, pw_hash) values (_clean(p_a #>> '{}', 40), 'coadmin', crypt(p_b #>> '{}', gen_salt('bf')));
+    return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name) from admins where role = 'coadmin'), '[]'::jsonb);
+  when 'removeCoAdmin' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    delete from admins where role = 'coadmin' and id::text = p_a #>> '{}';
+    return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name) from admins where role = 'coadmin'), '[]'::jsonb);
+  when 'wipe' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    update photos set status = 'deleted';
+    delete from comments;
+    delete from messages;
+  else
+    raise exception 'Neznámá akce';
+  end case;
+  return 'true'::jsonb;
+end $$;
+
+-- Jen tyhle funkce smí volat stránka (anonymní návštěvník).
+revoke all on function public._settings(), public._closed(), public._photos_json(text) from public, anon, authenticated;
+grant execute on function
+  public.init(), public.list_photos(), public.add_photo(text, text), public.react(text, text, int), public.report(text),
+  public.list_comments(text), public.add_comment(text, text, text), public.list_messages(), public.add_message(text, text, text),
+  public.get_screen(), public.claim_owner(text), public.admin(text, text, jsonb, jsonb)
+to anon, authenticated;
+
+/* ---------------------------------------------------------------- storage */
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('photos', 'photos', true, 52428800, array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'])
+on conflict (id) do update set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "momenty nahravani" on storage.objects;
+create policy "momenty nahravani" on storage.objects for insert to anon, authenticated
+  with check (bucket_id = 'photos' and (name like 'p/%' or name like 't/%' or name like 's/%'));

@@ -1,63 +1,1457 @@
 <!doctype html>
 <html lang="cs">
 <head>
+<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05060b">
 <title>Momenty · Maturitní ples</title>
-<meta name="description" content="Sdílená galerie z plesu. Naskenuj, vyfoť, hotovo. Bez aplikace a bez registrace.">
-<meta property="og:title" content="Momenty · Maturitní ples">
-<meta property="og:description" content="Naskenuj, vyfoť, hotovo. Všechny fotky z plesu na jednom místě.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Unbounded:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Unbounded:wght@500;700;800&family=Orbitron:wght@600;800&family=Syne:wght@600;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #05060b; --text: #eef1ff; --muted: #9aa0bd; --a1: #22e5ff; --a2: #8b5cff; --a3: #ff3df2; color-scheme: dark; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 16px/1.5 'Space Grotesk', system-ui, sans-serif; }
-  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
-  .boot { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px max(16px, env(safe-area-inset-left, 0px)); transition: opacity .5s; }
-  .boot.gone { opacity: 0; pointer-events: none; }
-  .bg { position: fixed; inset: 0; overflow: hidden; z-index: -1; }
+  :root {
+    --bg: #05060b; --glass: rgba(255,255,255,.045); --glass-2: rgba(255,255,255,.08); --line: rgba(255,255,255,.1);
+    --text: #eef1ff; --muted: #9aa0bd; --ok: #4dffb8; --warn: #ffc65c; --bad: #ff5c7a;
+    --a1: #22e5ff; --a2: #8b5cff; --a3: #ff3df2; --on-a: #04060d;
+    --display: 'Unbounded', 'Space Grotesk', sans-serif;
+    --r: 22px; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px);
+  }
+  [data-theme="aurora"] { --a1: #7dff6a; --a2: #22e5ff; --a3: #4d7cff; }
+  [data-theme="synth"]  { --a1: #ff3df2; --a2: #ff8a3d; --a3: #8b5cff; }
+  [data-theme="gold"]   { --a1: #ffd27a; --a2: #ff7a9c; --a3: #b98bff; }
+  [data-theme="ice"]    { --a1: #e9f6ff; --a2: #6ac8ff; --a3: #8b9dff; }
+  [data-font="orbitron"] { --display: 'Orbitron', sans-serif; }
+  [data-font="syne"]     { --display: 'Syne', sans-serif; }
+  [data-font="fraunces"] { --display: 'Fraunces', Georgia, serif; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.5 'Space Grotesk', system-ui, -apple-system, sans-serif; min-height: 100vh; overflow-x: hidden; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; padding: 0; }
+  a { color: var(--a1); }
+  img { display: block; }
+  [hidden] { display: none !important; }
+
+  /* animated background */
+  .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
   .bg i { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(90px); opacity: .28; animation: drift 22s ease-in-out infinite alternate; }
   .bg i:nth-child(1) { background: var(--a1); top: -35vmax; left: -20vmax; }
   .bg i:nth-child(2) { background: var(--a2); top: 10vmax; right: -35vmax; animation-delay: -7s; }
   .bg i:nth-child(3) { background: var(--a3); bottom: -45vmax; left: 0; opacity: .18; animation-delay: -14s; }
+  .bg::after { content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 44px 44px; mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); }
   @keyframes drift { to { transform: translate(8vmax, 6vmax) scale(1.15); } }
-  h1 { font: 800 clamp(30px, 8vw, 48px)/1.05 Unbounded, 'Space Grotesk', sans-serif; margin: 0 0 12px; background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  p { color: var(--muted); margin: 0 auto; max-width: 380px; }
-  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--a1); box-shadow: 0 0 14px var(--a1); margin: 0 auto 20px; animation: blink 1.1s infinite; }
+  @media (prefers-reduced-motion: reduce) { .bg i { animation: none; } }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px calc(120px + var(--safe-b)); }
+  .disp { font-family: var(--display); font-weight: 800; letter-spacing: -.01em; }
+  h2 { font-family: var(--display); font-size: 19px; font-weight: 700; margin: 0 0 12px; letter-spacing: .01em; }
+  .muted { color: var(--muted); } .small { font-size: 13px; }
+  .grad { background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .link { color: var(--a1); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* glass card with gradient border */
+  .card { position: relative; background: var(--glass); border-radius: var(--r); padding: 18px; margin-top: 16px;
+    backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid var(--line); }
+  .card.glow { border: 1px solid transparent; background: linear-gradient(var(--bg), var(--bg)) padding-box, linear-gradient(135deg, var(--a1), var(--a2) 50%, var(--a3)) border-box; }
+  .card.glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--glass); pointer-events: none; }
+  .card.glow > * { position: relative; }
+
+  /* hero */
+  .hero { position: relative; text-align: center; padding: calc(36px + var(--safe-t)) 8px 10px; }
+  .hero.cover { margin: 0 -16px; padding: calc(80px + var(--safe-t)) 24px 26px; background-size: cover; background-position: center; border-radius: 0 0 32px 32px; overflow: hidden; }
+  .hero.cover::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,.25), rgba(5,6,11,.94)); }
+  .hero > * { position: relative; }
+  .avatar-ring { width: 124px; height: 124px; margin: 0 auto 16px; border-radius: 50%; padding: 3px; background: conic-gradient(from 0deg, var(--a1), var(--a2), var(--a3), var(--a1)); animation: spin 8s linear infinite; box-shadow: 0 0 40px -6px var(--a2); }
+  .avatar-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg); background: #111; animation: spin 8s linear infinite reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 99px; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+  .chip .live { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); animation: blink 1.4s infinite; }
   @keyframes blink { 50% { opacity: .3; } }
-  @media (prefers-reduced-motion: reduce) { .bg i, .dot { animation: none; } }
+  .hero h1 { font-family: var(--display); font-weight: 800; font-size: clamp(32px, 9vw, 56px); line-height: 1.02; margin: 18px 0 8px; text-wrap: balance; }
+  .hero .sub { font-weight: 600; letter-spacing: .06em; margin: 0 0 12px; }
+  .hero .welcome { max-width: 480px; margin: 0 auto; color: var(--muted); white-space: pre-line; }
+  .countdown { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
+  .countdown div { min-width: 64px; padding: 10px 6px; border-radius: 14px; background: var(--glass); border: 1px solid var(--line); }
+  .countdown b { display: block; font-family: var(--display); font-size: 22px; line-height: 1; }
+  .countdown span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+
+  /* buttons */
+  .actions { display: grid; gap: 10px; margin: 24px 0 8px; }
+  .btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; padding: 0 18px;
+    border-radius: 18px; font-weight: 600; text-decoration: none; transition: transform .12s, box-shadow .2s, background .2s; overflow: hidden; }
+  .btn:active { transform: scale(.97); }
+  .btn svg { width: 22px; height: 22px; flex: none; }
+  .btn-main { min-height: 74px; font-family: var(--display); font-size: 20px; font-weight: 700; letter-spacing: .02em; color: var(--on-a);
+    background: linear-gradient(110deg, var(--a1), var(--a2) 55%, var(--a3)); background-size: 200% 100%; animation: sheen 6s linear infinite;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset, 0 14px 44px -12px var(--a2), 0 0 70px -20px var(--a1); }
+  .btn-main svg { width: 28px; height: 28px; }
+  @keyframes sheen { to { background-position: 200% 0; } }
+  .btn-glass { background: var(--glass-2); border: 1px solid var(--line); color: var(--text); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .btn-glass:hover { border-color: rgba(255,255,255,.25); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; min-height: 52px; }
+  .field svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+  .field input { flex: 1; border: 0; background: none; outline: none; min-width: 0; padding: 12px 0; font-size: 16px; }
+  .note { font-size: 13px; color: var(--muted); text-align: center; margin: 12px 6px 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .stat { text-align: center; padding: 14px 6px; border-radius: 18px; background: var(--glass); border: 1px solid var(--line); }
+  .stat b { display: block; font-family: var(--display); font-size: 24px; line-height: 1.1; }
+  .stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+
+  .nav-card { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; width: 100%; text-align: left; }
+  .nav-card .ico { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; flex: none; font-size: 22px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--a1) 25%, transparent), color-mix(in srgb, var(--a2) 25%, transparent)); border: 1px solid var(--line); }
+  .nav-card .ico svg { width: 24px; height: 24px; }
+  .nav-card b { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .01em; }
+  .nav-card .chev { margin-left: auto; color: var(--muted); font-size: 22px; }
+
+  .sec-head { display: flex; align-items: center; justify-content: space-between; margin: 30px 0 12px; }
+  .sec-head h2 { margin: 0; }
+  .sec-head button { color: var(--a1); font-weight: 600; }
+
+  .program { list-style: none; margin: 0; padding: 0; position: relative; }
+  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(var(--a1), var(--a2), var(--a3)); opacity: .35; border-radius: 2px; }
+  .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
+  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid var(--a2); }
+  .program time { color: var(--a1); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 46px; font-size: 15px; }
+  .program li.done { opacity: .45; }
+  .program li.now span { font-weight: 700; }
+  .program li.now::before { background: var(--a1); border-color: var(--a1); box-shadow: 0 0 14px var(--a1); }
+  .program li.now::after { content: "TEĎ"; margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .12em; padding: 3px 9px; border-radius: 99px; background: var(--a1); color: var(--on-a); }
+
+  /* grid */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-radius: 18px; overflow: hidden; }
+  @media (min-width: 600px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  .tile { position: relative; aspect-ratio: 1; background: linear-gradient(110deg, rgba(255,255,255,.04) 30%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 70%); background-size: 200% 100%; animation: shimmer 1.6s infinite; overflow: hidden; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s, transform .35s; }
+  .tile img.ld { opacity: 1; }
+  .tile:hover img { transform: scale(1.04); }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .tile .mine { position: absolute; top: 7px; left: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--a1); box-shadow: 0 0 10px var(--a1); }
+  .tile .meta { position: absolute; bottom: 5px; right: 7px; display: flex; gap: 6px; font-size: 12px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.9); }
+  .empty { text-align: center; padding: 34px 20px; color: var(--muted); }
+  .empty .big { font-size: 40px; margin-bottom: 6px; }
+
+  /* topbar */
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; margin: 0 -16px 14px; padding: calc(12px + var(--safe-t)) 16px 12px;
+    background: rgba(5,6,11,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
+  .topbar h2 { margin: 0; font-size: 18px; }
+  .icon-btn { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--glass-2); border: 1px solid var(--line); flex: none; }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .tabs { display: flex; gap: 8px; margin: 0 0 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 9px 15px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); white-space: nowrap; font-size: 14px; font-weight: 600; }
+  .tab.on { background: linear-gradient(110deg, var(--a1), var(--a2)); color: var(--on-a); border-color: transparent; }
+
+  /* upload bar */
+  .ubar { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translate(-50%, 160%); z-index: 30; width: min(460px, calc(100% - 32px));
+    background: rgba(14,16,28,.92); border: 1px solid var(--line); border-radius: 20px; padding: 13px 15px; box-shadow: 0 20px 50px -14px rgba(0,0,0,.8), 0 0 40px -18px var(--a2);
+    transition: transform .4s cubic-bezier(.2,.9,.3,1.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .ubar.show { transform: translate(-50%, 0); }
+  .ubar .row { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .ubar .row button { margin-left: auto; color: var(--a1); font-weight: 700; font-size: 14px; }
+  .ubar .prog { height: 5px; border-radius: 5px; background: rgba(255,255,255,.08); margin-top: 10px; overflow: hidden; }
+  .ubar .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3)); box-shadow: 0 0 12px var(--a1); transition: width .4s; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--a1); box-shadow: 0 0 10px var(--a1); flex: none; animation: blink 1.1s infinite; }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 10px var(--ok); animation: none; } .dot.warn { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+
+  .toast { position: fixed; left: 50%; top: calc(14px + var(--safe-t)); transform: translate(-50%, -180%); z-index: 80; display: flex; gap: 12px; align-items: center;
+    width: min(460px, calc(100% - 32px)); padding: 12px 14px; border-radius: 16px; background: rgba(18,20,34,.95); border: 1px solid var(--line);
+    box-shadow: 0 20px 50px -14px rgba(0,0,0,.9); transition: transform .4s cubic-bezier(.2,.9,.3,1.25); font-size: 15px; backdrop-filter: blur(14px); }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast button { margin-left: auto; padding: 9px 13px; border-radius: 12px; background: linear-gradient(110deg, var(--a1), var(--a2)); color: var(--on-a); font-weight: 700; font-size: 14px; white-space: nowrap; }
+
+  /* lightbox */
+  .lb { position: fixed; inset: 0; z-index: 40; background: #000; display: flex; flex-direction: column; touch-action: pan-y; }
+  .lb-top, .lb-bot { position: absolute; left: 0; right: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 12px 14px; }
+  .lb-top { top: 0; background: linear-gradient(rgba(0,0,0,.75), transparent); padding-top: calc(12px + var(--safe-t)); }
+  .lb-bot { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.85)); padding-bottom: calc(16px + var(--safe-b)); flex-wrap: wrap; justify-content: center; }
+  .lb-top .who { font-weight: 700; } .lb-top .when { font-size: 13px; color: var(--muted); }
+  .lb-top .icon-btn { margin-left: auto; background: rgba(255,255,255,.12); border: 0; }
+  .lb-stage { flex: 1; display: grid; place-items: center; overflow: hidden; }
+  .lb-stage img { max-width: 100%; max-height: 100vh; object-fit: contain; transition: transform .25s, opacity .25s; user-select: none; -webkit-user-drag: none; }
+  .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.12); display: none; place-items: center; }
+  @media (hover: hover) { .lb-nav { display: grid; } }
+  .lb-nav.prev { left: 14px; } .lb-nav.next { right: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 99px; background: rgba(255,255,255,.12); font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.08); }
+  .pill.on { background: color-mix(in srgb, var(--a3) 40%, transparent); border-color: var(--a3); }
+  .pill.danger { background: rgba(255,92,122,.22); }
+  .pill.acc { background: linear-gradient(110deg, var(--a1), var(--a2)); color: var(--on-a); }
+
+  /* sheet (comments) */
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; max-height: 72vh; display: flex; flex-direction: column; background: rgba(12,14,24,.97);
+    border-top: 1px solid var(--line); border-radius: 26px 26px 0 0; padding: 10px 16px calc(14px + var(--safe-b)); transform: translateY(105%); visibility: hidden; transition: transform .35s cubic-bezier(.2,.9,.3,1), visibility 0s .35s; backdrop-filter: blur(20px); }
+  .sheet.show { transform: none; visibility: visible; transition: transform .35s cubic-bezier(.2,.9,.3,1); }
+  .sheet .grip { width: 44px; height: 5px; border-radius: 5px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
+  .sheet .list { overflow-y: auto; flex: 1; min-height: 80px; }
+  .cm { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .cm b { font-size: 14px; } .cm p { margin: 2px 0 0; word-wrap: break-word; }
+  .cm .meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; }
+  .cm .meta button { color: var(--bad); margin-left: auto; }
+  .cm-form { display: flex; gap: 8px; margin-top: 10px; }
+  .cm-form input { flex: 1; min-width: 0; }
+
+  /* forms */
+  .inp { width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; outline: none; font-size: 16px; transition: border-color .2s, box-shadow .2s; }
+  .inp:focus { border-color: var(--a1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a1) 25%, transparent); }
+  textarea.inp { min-height: 100px; resize: vertical; }
+  select.inp { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+  select.inp option { background: #12141f; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  label.lbl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .1em; }
+  .chk { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 15px; }
+  .chk input { width: 22px; height: 22px; accent-color: var(--a1); flex: none; }
+
+  .msg { margin-top: 10px; }
+  .msg .to { font-weight: 700; font-size: 14px; } .msg .to span { color: var(--a1); }
+  .msg p { margin: 6px 0; white-space: pre-wrap; word-wrap: break-word; }
+  .msg .meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; }
+  .msg .meta button { margin-left: auto; color: var(--bad); }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 16px; backdrop-filter: blur(6px); }
+  .modal .box { width: min(380px, 100%); text-align: center; margin: 0; }
+  .qr-box { background: #fff; border-radius: 18px; padding: 14px; display: inline-block; margin: 14px 0; box-shadow: 0 0 50px -10px var(--a1); }
+  .qr-box img, .qr-box canvas { width: 220px !important; height: 220px !important; }
+
+  /* admin */
+  .adm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .adm-grid a, .adm-grid button { display: flex; align-items: center; gap: 8px; padding: 13px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; text-align: left; }
+  .remote { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .remote button { padding: 16px 6px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid var(--line); font-weight: 700; font-size: 14px; }
+  .remote button.on { background: linear-gradient(110deg, var(--a1), var(--a2)); color: var(--on-a); }
+  .pend { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .pend img { width: 70px; height: 70px; object-fit: cover; border-radius: 12px; background: #111; flex: none; cursor: zoom-in; }
+  .pend .sp { flex: 1; font-size: 14px; min-width: 0; }
+  .pend .bt { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .warnbox { padding: 12px 14px; border-radius: 14px; background: rgba(255,198,92,.1); border: 1px solid rgba(255,198,92,.35); font-size: 13px; margin-top: 10px; word-break: break-word; }
+  .imgrow { display: flex; align-items: center; gap: 14px; }
+  .imgrow .ph { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,.06); border: 2px solid var(--line); flex: none; }
+  .imgrow .ph.cover { width: 128px; border-radius: 14px; }
+  .sbtn { padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.07); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+  .prow { display: grid; grid-template-columns: 90px 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .prow .x { display: flex; gap: 4px; }
+  .prow .x button { width: 36px; height: 46px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sw { width: 52px; height: 52px; border-radius: 16px; border: 2px solid transparent; position: relative; }
+  .sw.on { border-color: #fff; box-shadow: 0 0 20px -2px rgba(255,255,255,.5); }
+  .fonts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fonts button { padding: 14px 10px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid var(--line); font-size: 17px; }
+  .fonts button.on { border-color: var(--a1); box-shadow: 0 0 0 2px color-mix(in srgb, var(--a1) 35%, transparent); }
+  .savebar { position: sticky; bottom: calc(12px + var(--safe-b)); margin-top: 18px; z-index: 3; }
+
+  .rules p { margin: 0 0 12px; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 38px; }
+  footer a, footer button { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* plátno */
+  .screen { position: fixed; inset: 0; background: #000; overflow: hidden; cursor: none; font-family: 'Space Grotesk', sans-serif; }
+  .screen.ctl { cursor: default; }
+  .screen .layer { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transition: opacity 1.4s ease; }
+  .screen .layer.on { opacity: 1; }
+  .screen .layer .blur { position: absolute; inset: -60px; background-size: cover; background-position: center; filter: blur(50px) brightness(.4) saturate(1.3); }
+  .screen .layer img { position: relative; width: 100%; height: 100%; object-fit: contain; animation: kb 14s ease-out both; box-shadow: 0 0 120px rgba(0,0,0,.6); }
+  @keyframes kb { from { transform: scale(1.06); } to { transform: scale(1); } }
+  .screen .hud { position: absolute; left: 3vw; top: 2.6vw; right: 3vw; display: flex; align-items: center; gap: 1.4vw; }
+  .screen .hud .t { font: 800 2.3vw var(--display); }
+  .screen .hud .n { margin-left: auto; font: 600 1.2vw 'Space Grotesk'; letter-spacing: .15em; text-transform: uppercase; padding: .6vw 1.2vw; border-radius: 99px; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.15); }
+  .screen .cap { position: absolute; left: 3vw; bottom: 3vw; font: 700 2.1vw 'Space Grotesk'; text-shadow: 0 2px 14px rgba(0,0,0,.9); display: flex; align-items: center; gap: 1vw; }
+  .screen .newb { font: 800 1.1vw 'Space Grotesk'; letter-spacing: .2em; padding: .5vw 1vw; border-radius: 99px; background: linear-gradient(110deg, var(--a1), var(--a3)); color: var(--on-a); animation: blink 1s infinite; }
+  .screen .corner { position: absolute; right: 2.6vw; bottom: 2.6vw; background: #fff; color: #111; border-radius: 1.4vw; padding: 1vw; text-align: center; font: 800 1.15vw 'Space Grotesk'; box-shadow: 0 0 60px -10px var(--a1); }
+  .screen .corner .q canvas, .screen .corner .q img { width: 11vw !important; height: 11vw !important; }
+  .screen .controls { position: absolute; top: 6vw; right: 3vw; display: none; gap: 8px; }
+  .screen.ctl .controls { display: flex; }
+  .screen .wait { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .screen .wait b { display: block; font: 800 4vw var(--display); margin-bottom: 1vw; }
+  .screen .wait span { font: 500 1.6vw 'Space Grotesk'; color: var(--muted); }
+  .screen .wait .q { display: inline-block; background: #fff; padding: 1.2vw; border-radius: 1.4vw; margin-top: 2vw; }
+  .screen .wait .q canvas, .screen .wait .q img { width: 18vw !important; height: 18vw !important; }
+
+  /* print */
+  .print { background: #fff; color: #111; min-height: 100vh; padding: 24px; font-family: 'Space Grotesk', sans-serif; }
+  .print .toolbar { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .print .toolbar button { padding: 11px 18px; border-radius: 12px; background: #111; color: #fff; font-weight: 700; }
+  .poster { max-width: 580px; margin: 0 auto; border-radius: 30px; padding: 44px 30px; text-align: center; background: #07080f; color: #fff; position: relative; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .poster::before { content: ""; position: absolute; inset: -40%; background: radial-gradient(circle at 20% 20%, var(--a1), transparent 35%), radial-gradient(circle at 80% 30%, var(--a2), transparent 35%), radial-gradient(circle at 50% 90%, var(--a3), transparent 40%); opacity: .45; filter: blur(30px); }
+  .poster > * { position: relative; }
+  .poster h1 { font: 800 40px var(--display); margin: 8px 0 6px; }
+  .poster .big-q { display: inline-block; margin: 22px 0; background: #fff; padding: 16px; border-radius: 22px; }
+  .poster .big-q canvas, .poster .big-q img { width: 280px !important; height: 280px !important; }
+  .poster .steps { font-size: 19px; font-weight: 700; }
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); max-width: 760px; margin: 30px auto 0; }
+  .tcard { border: 1px dashed #aaa; padding: 22px; text-align: center; break-inside: avoid; }
+  .tcard .q canvas, .tcard .q img { width: 150px !important; height: 150px !important; margin: 10px auto; }
+  @media print { .print .toolbar { display: none; } .print { padding: 0; } .cards { break-before: page; } }
 </style>
 </head>
 <body>
 <div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
-<div class="boot" id="boot">
-  <div>
-    <div class="dot"></div>
-    <h1>Momenty</h1>
-    <p id="msg">Načítám galerii…</p>
-  </div>
-</div>
-<script>
-  // Adresa aplikace z Google Apps Script (končí na /exec). Doplní se po nasazení.
-  var EXEC_URL = '';
+<div id="app"></div>
 
-  (function () {
-    var boot = document.getElementById('boot');
-    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(EXEC_URL)) {
-      document.getElementById('msg').textContent = 'Galerie se právě připravuje. Zkus to prosím za chvíli.';
-      return;
+<div class="ubar" id="ubar" role="status" aria-live="polite">
+  <div class="row"><span class="dot" id="udot"></span><span id="utext">Odesílám fotky</span><button id="uaction" hidden></button></div>
+  <div class="prog"><i id="uprog"></i></div>
+</div>
+<div class="toast" id="toast"><span id="ttext"></span><button id="tbtn" hidden></button></div>
+
+<div class="lb" id="lb" hidden>
+  <div class="lb-top">
+    <div><div class="who" id="lbWho"></div><div class="when" id="lbWhen"></div></div>
+    <button class="icon-btn" id="lbClose" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <button class="lb-nav prev" id="lbPrev" aria-label="Předchozí"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="lb-stage" id="lbStage"><img id="lbImg" alt=""></div>
+  <button class="lb-nav next" id="lbNext" aria-label="Další"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div class="lb-bot" id="lbBot"></div>
+</div>
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+  <div style="display:flex;align-items:center;margin-bottom:6px"><h2 style="margin:0">Komentáře</h2><button class="icon-btn" id="sheetClose" style="margin-left:auto" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="list" id="cmList"></div>
+  <form class="cm-form" id="cmForm"><input class="inp" id="cmText" maxlength="400" placeholder="Napiš komentář…" autocomplete="off"><button class="btn btn-main" style="min-height:48px;font-size:15px;padding:0 16px">Poslat</button></form>
+</div>
+
+<div class="modal" id="modal" hidden><div class="card glow box" id="modalBox"></div></div>
+
+<input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+<input type="file" id="pickIn" accept="image/*" multiple hidden>
+
+<script>
+  var PARAMS = (function () { var o = {}; new URLSearchParams(location.search).forEach(function (v, k) { o[k] = v; }); return o; })();
+  // Veřejná adresa galerie (QR kódy, sdílení). Stránka na GitHubu zobrazuje aplikaci z Google Apps Scriptu.
+  var APP_URL = 'https://jachben.github.io/momenty/';
+</script>
+<script>window.MOMENTY_CONFIG = { url: "https://dapcahnvvkiokzaybznh.supabase.co", key: "sb_publishable_82K1M9exEwuxAXqNwb0IgQ_MSeLrRyz" };</script>
+<script>
+/* Momenty: napojení stránky na Supabase (místo Google Apps Script). */
+(function () {
+  var SB_URL = (window.MOMENTY_CONFIG || {}).url || '';
+  var SB_KEY = (window.MOMENTY_CONFIG || {}).key || '';
+  var ready = /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(SB_URL) && SB_KEY.length > 20;
+
+  function headers(extra) {
+    var h = { apikey: SB_KEY };
+    if (/^eyJ/.test(SB_KEY)) h.Authorization = 'Bearer ' + SB_KEY;
+    for (var k in extra) h[k] = extra[k];
+    return h;
+  }
+  function rpc(fn, body) {
+    if (!ready) return Promise.reject(new Error('Galerie se právě připravuje. Zkus to prosím za chvíli.'));
+    return fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify(body || {}) })
+      .then(function (r) {
+        return r.text().then(function (t) {
+          var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+          if (!r.ok) throw new Error((j && (j.message || j.error_description || j.error)) || ('Chyba serveru (' + r.status + ')'));
+          return j;
+        });
+      });
+  }
+  function upload(path, blob) {
+    return fetch(SB_URL + '/storage/v1/object/photos/' + path, {
+      method: 'POST', headers: headers({ 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'false' }), body: blob,
+    }).then(function (r) {
+      if (r.ok) return;
+      return r.text().then(function (t) {
+        if (/exists|Duplicate/i.test(t)) return; // stejná fotka už nahraná (opakovaný pokus)
+        var m = ''; try { m = JSON.parse(t).message || ''; } catch (e) {}
+        throw new Error('Nahrání fotky selhalo' + (m ? ': ' + m : ' (' + r.status + ')'));
+      });
+    });
+  }
+  function b64ToBlob(b64, mime) {
+    var bin = atob(b64), u = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return new Blob([u], { type: mime || 'image/jpeg' });
+  }
+  function thumb(blob) {
+    return new Promise(function (res) {
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function () {
+        var s = Math.min(1, 640 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { res(b || blob); }, 'image/jpeg', 0.8);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); res(blob); };
+      img.src = url;
+    });
+  }
+  function rid() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
+  function pub(path) { return SB_URL + '/storage/v1/object/public/photos/' + path; }
+
+  window.MOCK_IMG = {
+    thumb: function (id) { return id.indexOf('/') > -1 ? pub(id) : pub('t/' + id); },
+    big: function (id) { return id.indexOf('/') > -1 ? pub(id) : pub('p/' + id); },
+    bigAlt: function (id) { return id.indexOf('/') > -1 ? pub(id) : pub('p/' + id); },
+    dl: function (id) { return pub('p/' + id) + '?download=foto-' + id + '.jpg'; },
+  };
+
+  var fns = {
+    init: function () { return rpc('init').then(function (d) { d.cfg.driveUrl = ''; return d; }); },
+    listPhotos: function () { return rpc('list_photos'); },
+    uploadPhoto: function (p) {
+      var blob = b64ToBlob(p.data, p.mime);
+      return upload('p/' + p.cid, blob)
+        .then(function () { return thumb(blob); })
+        .then(function (t) { return upload('t/' + p.cid, t); })
+        .then(function () { return rpc('add_photo', { p_id: p.cid, p_author: p.author || '' }); });
+    },
+    react: function (id, k, d) { return rpc('react', { p_id: id, p_kind: k, p_delta: d }); },
+    report: function (id) { return rpc('report', { p_id: id }); },
+    listComments: function (id) { return rpc('list_comments', { p_id: id }); },
+    addComment: function (id, c) { return rpc('add_comment', { p_id: id, p_name: (c && c.name) || '', p_text: (c && c.text) || '' }); },
+    listMessages: function () { return rpc('list_messages'); },
+    addMessage: function (m) { return rpc('add_message', { p_from: m.from || '', p_to: m.to || '', p_text: m.text || '' }); },
+    getScreen: function () { return rpc('get_screen'); },
+    admin: function (key, action, a, b) {
+      if (action === 'setAvatar' || action === 'setCover') {
+        var which = action === 'setAvatar' ? 'avatarId' : 'coverId';
+        var path = a && a.data ? 's/' + rid() : null;
+        var up = path ? upload(path, b64ToBlob(a.data, a.mime)) : Promise.resolve();
+        return up.then(function () { return rpc('admin', { p_pw: key, p_action: 'setImage', p_a: which, p_b: path }); });
+      }
+      return rpc('admin', { p_pw: key, p_action: action, p_a: a === undefined ? null : a, p_b: b === undefined ? null : b });
+    },
+  };
+
+  function runner(ok, fail) {
+    return new Proxy({}, {
+      get: function (_, k) {
+        if (k === 'withSuccessHandler') return function (f) { return runner(f, fail); };
+        if (k === 'withFailureHandler') return function (f) { return runner(ok, f); };
+        return function () {
+          var args = Array.prototype.slice.call(arguments);
+          Promise.resolve().then(function () { return fns[k].apply(null, args); })
+            .then(function (r) { ok && ok(r); }, function (e) { fail && fail(e); });
+        };
+      },
+    });
+  }
+  window.google = { script: { get run() { return runner(null, null); } } };
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ================================================================ utils */
+var $ = function (s, el) { return (el || document).querySelector(s); };
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+var uid = function () { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+function load(k, d) { try { var v = localStorage.getItem('mom.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { localStorage.setItem('mom.' + k, JSON.stringify(v)); } catch (e) {} }
+function ago(t) {
+  var s = Math.max(1, Math.round((Date.now() - t) / 1000));
+  if (s < 60) return 'právě teď';
+  var m = Math.round(s / 60); if (m < 60) return 'před ' + m + ' min';
+  var h = Math.round(m / 60); if (h < 24) return 'před ' + h + ' h';
+  var d = new Date(t);
+  return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+}
+function plural(n, one, few, many) { return n === 1 ? one : (n >= 2 && n <= 4 ? few : many); }
+function fmtDate(s, long) {
+  if (!s) return '';
+  var d = new Date(s + 'T12:00:00');
+  return isNaN(d) ? '' : d.toLocaleDateString('cs-CZ', long ? { day: 'numeric', month: 'long', year: 'numeric' } : { day: 'numeric', month: 'numeric', year: 'numeric' });
+}
+function errMsg(e) { return (e && e.message) || String(e || 'Chyba'); }
+
+function api(fn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function (res, rej) {
+    var r = google.script.run.withSuccessHandler(res).withFailureHandler(function (e) { rej(e || new Error('Chyba')); });
+    r[fn].apply(r, args);
+  });
+}
+function adm(action, a, b) { return api('admin', S.admin, action, a === undefined ? null : a, b === undefined ? null : b); }
+
+var IMG = window.MOCK_IMG || {
+  thumb: function (id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 500); },
+  big: function (id) { return 'https://lh3.googleusercontent.com/d/' + id + '=w2400'; },
+  bigAlt: function (id) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w2400'; },
+  dl: function (id) { return 'https://drive.google.com/uc?export=download&id=' + id; },
+};
+
+var I = {
+  cam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="13.5" r="4"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 17h4v4h-4"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>',
+  album: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 012 2v12"/><path d="M3 16l4-4 4 4 2-2 4 4"/></svg>',
+};
+
+var THEMES = { neon: ['#22e5ff', '#8b5cff', '#ff3df2'], aurora: ['#7dff6a', '#22e5ff', '#4d7cff'], synth: ['#ff3df2', '#ff8a3d', '#8b5cff'], gold: ['#ffd27a', '#ff7a9c', '#b98bff'], ice: ['#e9f6ff', '#6ac8ff', '#8b9dff'] };
+var THEME_NAMES = { neon: 'Neon', aurora: 'Aurora', synth: 'Synthwave', gold: 'Zlato', ice: 'Led' };
+var FONTS = { unbounded: ['Unbounded', 'Unbounded'], orbitron: ['Orbitron', 'Orbitron'], syne: ['Syne', 'Syne'], fraunces: ['Fraunces', 'Elegantní'] };
+
+/* ================================================================ state */
+var S = {
+  cfg: null, photos: [], msgCount: 0, messages: null,
+  view: 'home', tab: 'all', shown: 60,
+  my: load('my', []), liked: load('liked', {}), name: load('name', ''),
+  local: {}, queue: [], done: 0, total: 0, failed: 0,
+  admin: PARAMS.admin || load('admin', ''), role: '', driveUrl: '', photosUrl: '', photosError: '',
+  pending: [], hidden: [], coAdmins: [], admTab: 'pending', screen: null,
+  lbList: [], lbIndex: 0,
+};
+var mySet = {}; S.my.forEach(function (id) { mySet[id] = 1; });
+function isAdmin() { return !!S.role; }
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', S.cfg.theme || 'neon');
+  document.documentElement.setAttribute('data-font', S.cfg.font || 'unbounded');
+  document.title = S.cfg.title;
+}
+
+/* ============================================================ IndexedDB */
+var IDB = (function () {
+  var p = null;
+  function db() {
+    if (!p) p = new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('no idb'));
+      var r = indexedDB.open('momenty', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('q', { keyPath: 'cid' }); };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+    return p;
+  }
+  function tx(mode, fn) {
+    return db().then(function (d) {
+      return new Promise(function (res, rej) {
+        var t = d.transaction('q', mode), req = fn(t.objectStore('q'));
+        t.oncomplete = function () { res(req && req.result); };
+        t.onerror = function () { rej(t.error); };
+      });
+    });
+  }
+  return {
+    put: function (it) { return tx('readwrite', function (s) { return s.put(it); }).catch(function () {}); },
+    del: function (k) { return tx('readwrite', function (s) { return s.delete(k); }).catch(function () {}); },
+    all: function () { return tx('readonly', function (s) { return s.getAll(); }).catch(function () { return []; }); },
+  };
+})();
+
+/* ============================================================== upload */
+function loadImage(url) {
+  return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = url; });
+}
+
+/* Odstraní GPS polohu z JPEG (EXIF + XMP) bez překódování: plná kvalita zůstane. */
+function stripGps(buf) {
+  try {
+    var v = new DataView(buf);
+    if (v.getUint16(0) !== 0xFFD8) return buf;
+    var o = 2, SIZES = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 };
+    while (o + 4 < v.byteLength) {
+      var m = v.getUint16(o); if ((m & 0xFF00) !== 0xFF00 || m === 0xFFDA) break;
+      var len = v.getUint16(o + 2), end = o + 2 + len;
+      if (m === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) {
+        var t = o + 10, le = v.getUint16(t) === 0x4949;
+        var g16 = function (p) { return v.getUint16(p, le); }, g32 = function (p) { return v.getUint32(p, le); };
+        var ifd = t + g32(t + 4), n = g16(ifd);
+        for (var i = 0; i < n; i++) {
+          var e = ifd + 2 + i * 12;
+          if (g16(e) !== 0x8825) continue;
+          var gps = t + g32(e + 8); if (gps + 2 > end) break;
+          var gn = g16(gps);
+          for (var j = 0; j < gn; j++) {
+            var ge = gps + 2 + j * 12, size = (SIZES[g16(ge + 2)] || 1) * g32(ge + 4);
+            if (size > 4) { var off = t + g32(ge + 8); for (var k = 0; k < size && off + k < end; k++) v.setUint8(off + k, 0); }
+          }
+          for (var z = 0; z < 2 + gn * 12 && gps + z < end; z++) v.setUint8(gps + z, 0);
+        }
+      } else if (m === 0xFFE1) {
+        var head = ''; for (var h = 0; h < 28; h++) head += String.fromCharCode(v.getUint8(o + 4 + h));
+        if (head.indexOf('http://ns.adobe.com/xap') === 0) for (var x = o + 4 + 29; x < end; x++) v.setUint8(x, 0x20);
+      }
+      o = end;
     }
-    var f = document.createElement('iframe');
-    f.title = 'Momenty galerie';
-    f.allow = 'camera; microphone; clipboard-read; clipboard-write; web-share; fullscreen; autoplay';
-    f.setAttribute('allowfullscreen', '');
-    f.src = EXEC_URL + location.search;
-    f.onload = function () { boot.classList.add('gone'); };
-    document.body.appendChild(f);
-    setTimeout(function () { boot.classList.add('gone'); }, 12000);
+  } catch (err) { /* poškozená metadata: nahraje se beze změny */ }
+  return buf;
+}
+
+function readBuf(blob) {
+  if (blob.arrayBuffer) return blob.arrayBuffer();
+  return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = rej; r.readAsArrayBuffer(blob); });
+}
+
+function prep(file) {
+  var max = +(S.cfg && S.cfg.maxSize) || 0;
+  var type = file.type || 'image/jpeg';
+  if (!max || !/^image\/(jpeg|png|webp|heic|heif)$/.test(type)) {
+    if (type !== 'image/jpeg') return Promise.resolve(file);
+    return readBuf(file).then(function (b) { return new Blob([stripGps(b)], { type: 'image/jpeg' }); }).catch(function () { return file; });
+  }
+  var url = URL.createObjectURL(file);
+  return loadImage(url).then(function (img) {
+    var w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * s); c.height = Math.round(h * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return new Promise(function (res) { c.toBlob(function (b) { res(b || file); }, 'image/jpeg', 0.9); });
+  }).catch(function () { return file; }).then(function (b) { URL.revokeObjectURL(url); return b; });
+}
+
+function toB64(blob) {
+  return new Promise(function (res, rej) {
+    var r = new FileReader();
+    r.onload = function () { res(String(r.result).split(',')[1]); };
+    r.onerror = function () { rej(r.error); };
+    r.readAsDataURL(blob);
+  });
+}
+
+function addFiles(files, fromCamera) {
+  files = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type) || !f.type; });
+  if (!files.length) return;
+  S.total += files.length; updateBar();
+  var chain = Promise.resolve();
+  files.forEach(function (file) {
+    chain = chain.then(function () { return prep(file); }).then(function (blob) {
+      var it = { cid: uid(), blob: blob, mime: blob.type || 'image/jpeg', author: S.name, tries: 0 };
+      it.url = URL.createObjectURL(blob);
+      S.queue.push(it); IDB.put({ cid: it.cid, blob: it.blob, mime: it.mime, author: it.author, tries: 0 });
+      pump();
+    });
+  });
+  chain.then(function () {
+    if (fromCamera && files.length === 1) toast('Fotka letí do galerie ✦', 'Uložit do mobilu', function () { saveFile(files[0], 'foto-' + Date.now() + '.jpg'); }, 8000);
+  });
+}
+
+var pumping = false;
+function pump() {
+  if (pumping) return;
+  pumping = true;
+  (function next() {
+    if (!S.queue.length) { pumping = false; updateBar(); return; }
+    if (navigator.onLine === false) { pumping = false; updateBar('offline'); return; }
+    var it = S.queue[0];
+    updateBar();
+    toB64(it.blob).then(function (data) {
+      return api('uploadPhoto', { data: data, mime: it.mime, cid: it.cid, author: it.author });
+    }).then(function (r) {
+      S.queue.shift(); IDB.del(it.cid); S.done++;
+      if (!mySet[r.id]) { mySet[r.id] = 1; S.my.unshift(r.id); save('my', S.my.slice(0, 3000)); }
+      S.local[r.id] = it.url;
+      if (r.pending) toast('Fotka čeká na schválení pořadatelem');
+      else if (!S.photos.some(function (p) { return p.id === r.id; })) {
+        S.photos.unshift({ id: r.id, a: it.author, t: Date.now(), hr: 0, lr: 0, c: 0, _local: 1 });
+        refresh();
+      }
+      next();
+    }).catch(function (err) {
+      it.tries++;
+      if (it.tries >= 8 || /uzavřená|Neplatná/.test(errMsg(err))) {
+        S.queue.shift(); IDB.del(it.cid); S.failed++;
+        toast('Fotku se nepodařilo odeslat: ' + errMsg(err));
+        return next();
+      }
+      updateBar('retry');
+      setTimeout(next, Math.min(30000, 1500 * Math.pow(2, it.tries)));
+    });
   })();
+}
+window.addEventListener('online', pump);
+window.addEventListener('offline', function () { if (S.queue.length) updateBar('offline'); });
+
+var barTimer = 0;
+function updateBar(mode) {
+  var bar = $('#ubar'), dot = $('#udot'), txt = $('#utext'), act = $('#uaction'), prog = $('#uprog');
+  clearTimeout(barTimer);
+  if (!S.total) { bar.classList.remove('show'); return; }
+  var left = S.total - S.done - S.failed;
+  act.hidden = true;
+  prog.style.width = Math.round(100 * (S.done + S.failed) / S.total) + '%';
+  if (left > 0) {
+    dot.className = 'dot' + (mode ? ' warn' : '');
+    txt.textContent = mode === 'offline' ? 'Bez signálu · odešlu, až se připojíš (' + left + ')'
+      : mode === 'retry' ? 'Slabý signál · zkouším znovu · ' + (S.done + 1) + ' z ' + S.total
+      : 'Odesílám fotky · ' + Math.min(S.done + 1, S.total) + ' z ' + S.total;
+    bar.classList.add('show');
+  } else {
+    dot.className = 'dot ok';
+    txt.textContent = 'Hotovo · ' + S.done + ' ' + plural(S.done, 'fotka odeslána', 'fotky odeslány', 'fotek odesláno');
+    act.hidden = false; act.textContent = 'Zobrazit';
+    act.onclick = function () { S.tab = 'mine'; go('gallery'); };
+    bar.classList.add('show');
+    barTimer = setTimeout(function () { bar.classList.remove('show'); S.total = S.done = S.failed = 0; }, 5000);
+  }
+}
+window.addEventListener('beforeunload', function (e) { if (S.queue.length) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ======================================================= save to phone */
+function saveFile(file, name) {
+  try {
+    var f = file instanceof File ? file : new File([file], name, { type: file.type || 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      return navigator.share({ files: [f] }).catch(function (e) { if (e && e.name !== 'AbortError') download(f, name); });
+    }
+    download(f, name);
+  } catch (e) { download(file, name); }
+}
+function download(blob, name) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.target = '_self';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+}
+
+/* =============================================================== toast */
+var toastTimer = 0;
+function toast(text, btn, fn, ms) {
+  var t = $('#toast'), b = $('#tbtn');
+  $('#ttext').textContent = text;
+  b.hidden = !btn; b.textContent = btn || '';
+  b.onclick = function () { t.classList.remove('show'); fn && fn(); };
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 3500);
+}
+
+/* ============================================================== images */
+window.__imgOk = function (img) { img.classList.add('ld'); };
+window.__imgErr = function (img) {
+  var id = img.getAttribute('data-id'), n = +(img.getAttribute('data-n') || 0);
+  if (S.local[id] && img.src !== S.local[id]) { img.src = S.local[id]; return; }
+  if (n < 8) setTimeout(function () { img.setAttribute('data-n', n + 1); img.src = IMG.thumb(id) + '&r=' + (n + 1); }, 2500 + n * 1500);
+};
+function thumbSrc(p) { return p._local && S.local[p.id] ? S.local[p.id] : IMG.thumb(p.id); }
+function tileHtml(p, i) {
+  var meta = (p.hr ? '<span>♥ ' + p.hr + '</span>' : '') + (p.c ? '<span>💬 ' + p.c + '</span>' : '');
+  return '<button class="tile" data-i="' + i + '" aria-label="Fotka ' + esc(p.a || '') + '">' +
+    '<img loading="lazy" alt="" data-id="' + p.id + '" src="' + esc(thumbSrc(p)) + '" onload="__imgOk(this)" onerror="__imgErr(this)">' +
+    (mySet[p.id] ? '<span class="mine" title="Tvoje fotka"></span>' : '') + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</button>';
+}
+
+/* =============================================================== views */
+function go(view) { if (view !== 'settings') draft = null; S.view = view; S.shown = 60; render(); window.scrollTo(0, 0); }
+function refresh() { if (PARAMS.v || S.view === 'messages' || S.view === 'settings') return; render(true); }
+
+function render(soft) {
+  var app = $('#app');
+  if (!S.cfg) { app.innerHTML = '<div class="empty" style="padding-top:38vh"><div class="dot" style="margin:0 auto 16px"></div>Načítám…</div>'; return; }
+  var y = window.scrollY, v = S.view;
+  if ((v === 'admin' || v === 'settings') && !isAdmin()) v = S.view = 'home';
+  if (v === 'settings') { app.innerHTML = settingsHtml(); bindSettings(); return; }
+  app.innerHTML = v === 'gallery' ? galleryHtml() : v === 'messages' ? messagesHtml() : v === 'rules' ? rulesHtml() : v === 'admin' ? adminHtml() : homeHtml();
+  if (soft) window.scrollTo(0, y);
+  bindView();
+}
+
+function topbar(title, extra) {
+  return '<div class="topbar"><button class="icon-btn" data-go="home" aria-label="Zpět">' + I.back + '</button><h2>' + title + '</h2>' + (extra || '') + '</div>';
+}
+
+function firstTime(c) {
+  var m = c.program && c.program[0] && String(c.program[0][0]).match(/(\d{1,2}):(\d{2})/);
+  return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : '19:00';
+}
+
+function countdownHtml(c) {
+  if (!c.date) return '';
+  var diff = new Date(c.date + 'T' + firstTime(c) + ':00') - Date.now();
+  if (isNaN(diff) || diff <= 0) return '';
+  var d = Math.floor(diff / 864e5), h = Math.floor(diff / 36e5) % 24, m = Math.floor(diff / 6e4) % 60;
+  return '<div class="countdown" aria-label="Odpočet do začátku"><div><b>' + d + '</b><span>dní</span></div><div><b>' + h + '</b><span>hod</span></div><div><b>' + m + '</b><span>min</span></div></div>';
+}
+
+function eventPhase(c) {
+  if (!c.date) return '';
+  var now = new Date(), d = new Date(c.date + 'T12:00:00');
+  if (now.toDateString() === d.toDateString()) return 'day';
+  if (new Date(d.getTime() + 864e5).toDateString() === now.toDateString() && now.getHours() < 8) return 'night';
+  return '';
+}
+
+function homeHtml() {
+  var c = S.cfg, latest = S.photos.slice(0, 9), phase = eventPhase(c);
+  var authors = {}; S.photos.forEach(function (p) { if (p.a) authors[p.a.toLowerCase()] = 1; });
+  var cover = c.coverId ? ' cover" style="background-image:url(\'' + esc(IMG.thumb(c.coverId, 1600)) + '\')' : '';
+  var h = '<div class="wrap">';
+  h += '<header class="hero' + cover + '">' +
+    (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
+    '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
+    '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
+    (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) + '</header>';
+
+  if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
+
+  h += '<div class="actions">' +
+    '<button class="btn btn-main" data-act="cam">' + I.cam + 'Vyfotit</button>' +
+    '<div class="row2"><button class="btn btn-glass" data-act="pick">' + I.up + 'Nahrát</button>' +
+    '<button class="btn btn-glass" data-go="gallery">' + I.grid + 'Galerie</button></div></div>';
+
+  h += '<div class="stats"><div class="stat"><b class="grad">' + S.photos.length + '</b><span>' + plural(S.photos.length, 'fotka', 'fotky', 'fotek') + '</span></div>' +
+    '<div class="stat"><b class="grad">' + Object.keys(authors).length + '</b><span>fotografů</span></div>' +
+    '<div class="stat"><b class="grad">' + S.msgCount + '</b><span>' + plural(S.msgCount, 'vzkaz', 'vzkazy', 'vzkazů') + '</span></div></div>';
+
+  h += '<div class="sec-head"><h2>Nejnovější</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
+  h += latest.length ? '<div class="grid">' + latest.map(tileHtml).join('') + '</div>'
+    : '<div class="card empty"><div class="big">📸</div>Zatím tu nic není. Buď první, kdo přidá fotku!</div>';
+
+  h += '<button class="card nav-card" data-go="messages"><span class="ico">' + I.pen + '</span><span><b>' + esc(c.msgTitle || 'Vzkazy') + '</b><br><span class="muted small">' + esc(c.msgSub || '') + '</span></span><span class="chev">›</span></button>';
+  if (c.icloudUrl) h += '<a class="card nav-card" href="' + esc(c.icloudUrl) + '" target="_blank" rel="noopener"><span class="ico">' + I.album + '</span><span><b>Sdílené album</b><br><span class="muted small">Otevři album s fotkami z akce</span></span><span class="chev">›</span></a>';
+
+  if (c.program && c.program.length) {
+    var cur = -1;
+    if (phase) {
+      var now = new Date(), at = now.getHours() * 60 + now.getMinutes() + (phase === 'night' ? 1440 : 0), prev = -1;
+      c.program.forEach(function (p, i) {
+        var t = String(p[0]).match(/(\d{1,2}):(\d{2})/); if (!t) return;
+        var m = +t[1] * 60 + +t[2]; while (prev > -1 && m < prev) m += 1440; prev = m;
+        if (m <= at) cur = i;
+      });
+    }
+    h += '<div class="card"><h2>Program</h2><ol class="program">' + c.program.map(function (p, i) {
+      return '<li class="' + (i === cur ? 'now' : (cur > -1 && i < cur ? 'done' : '')) + '"><time>' + esc(p[0]) + '</time><span>' + esc(p[1]) + '</span></li>';
+    }).join('') + '</ol></div>';
+  }
+
+  h += '<footer>' + (c.driveUrl ? '<p><a href="' + esc(c.driveUrl) + '" target="_blank" rel="noopener">⬇ Stáhnout všechny fotky v plné kvalitě</a></p>' : '') +
+    '<p><button data-go="rules">Soukromí a pravidla galerie</button></p>' +
+    (c.deleteAt ? '<p>Fotky se smažou ' + esc(fmtDate(c.deleteAt)) + '.</p>' : '') +
+    '<p>Momenty · <button data-act="' + (isAdmin() ? 'logout' : 'login') + '">' + (isAdmin() ? 'Odhlásit pořadatele' : 'Pořadatel') + '</button></p></footer></div>';
+  return h;
+}
+
+function currentList() {
+  if (S.tab === 'mine') return S.photos.filter(function (p) { return mySet[p.id]; });
+  if (S.tab === 'top') return S.photos.filter(function (p) { return p.hr + p.lr > 0; }).sort(function (a, b) { return (b.hr + b.lr) - (a.hr + a.lr) || b.t - a.t; });
+  if (S.tab === 'talk') return S.photos.filter(function (p) { return p.c > 0; }).sort(function (a, b) { return b.c - a.c || b.t - a.t; });
+  return S.photos;
+}
+
+function galleryHtml() {
+  var list = currentList(), mine = S.photos.filter(function (p) { return mySet[p.id]; }).length;
+  var h = '<div class="wrap">' + topbar('Galerie · ' + S.photos.length, '<button class="icon-btn" style="margin-left:auto" data-act="pick" aria-label="Nahrát">' + I.up + '</button><button class="icon-btn" data-act="cam" aria-label="Vyfotit">' + I.cam + '</button>');
+  h += '<div class="tabs">' + [['all', 'Všechny'], ['mine', 'Moje · ' + mine], ['top', '♥ Nejoblíbenější'], ['talk', '💬 Komentované']].map(function (t) {
+    return '<button class="tab' + (S.tab === t[0] ? ' on' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
+  }).join('') + '</div>';
+  if (!list.length) {
+    h += '<div class="card empty"><div class="big">' + ({ top: '♥', talk: '💬', mine: '🤳' }[S.tab] || '📸') + '</div>' +
+      ({ mine: 'Zatím jsi nepřidal(a) žádnou fotku.', top: 'Zatím nikdo nic neolajkoval.', talk: 'Zatím žádné komentáře.' }[S.tab] || 'Zatím tu nic není.') + '</div>';
+  } else {
+    h += '<div class="grid">' + list.slice(0, S.shown).map(tileHtml).join('') + '</div>';
+    if (list.length > S.shown) h += '<div id="more" class="empty small">Načítám další…</div>';
+  }
+  if (S.cfg.driveUrl) h += '<footer><a href="' + esc(S.cfg.driveUrl) + '" target="_blank" rel="noopener">⬇ Stáhnout všechny v plné kvalitě</a></footer>';
+  return h + '</div>';
+}
+
+function messagesHtml() {
+  var c = S.cfg;
+  var h = '<div class="wrap">' + topbar(esc(c.msgTitle || 'Vzkazy'));
+  h += '<form class="card glow" id="msgForm" style="margin-top:0"><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
+    '<input class="inp" name="from" maxlength="40" placeholder="Od koho" value="' + esc(S.name) + '">' +
+    '<input class="inp" name="to" maxlength="40" placeholder="Pro koho"></div>' +
+    '<textarea class="inp" name="text" maxlength="800" required placeholder="Napiš pár slov na památku…" style="margin-top:10px"></textarea>' +
+    '<button class="btn btn-main" style="width:100%;min-height:56px;font-size:16px;margin-top:10px">Poslat vzkaz</button></form>';
+  return h + '<div id="msgList">' + msgListHtml() + '</div></div>';
+}
+function msgListHtml() {
+  if (S.messages === null) return '<div class="empty">Načítám…</div>';
+  if (!S.messages.length) return '<div class="empty">Zatím žádné vzkazy. Napiš první!</div>';
+  return S.messages.map(function (m) {
+    return '<div class="card msg">' + (m.to ? '<div class="to">Pro <span>' + esc(m.to) + '</span></div>' : '') + '<p>' + esc(m.text) + '</p>' +
+      '<div class="meta"><span>— ' + esc(m.from || 'Anonym') + '</span><span>' + ago(m.t) + '</span>' +
+      (isAdmin() ? '<button data-delmsg="' + esc(m.id) + '">Smazat</button>' : '') + '</div></div>';
+  }).join('');
+}
+function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgListHtml(); }
+
+function rulesHtml() {
+  var c = S.cfg;
+  return '<div class="wrap">' + topbar('Soukromí a pravidla') + '<div class="card rules" style="margin-top:0">' +
+    '<h2>Jak galerie funguje</h2>' +
+    '<p>• Nepotřebuješ účet, e-mail ani aplikaci. Jméno u fotky je nepovinné.</p>' +
+    '<p>• Fotky se ukládají v plné kvalitě do sdílené složky a alba pořadatele.</p>' +
+    '<p>• Přidané fotky vidí všichni, kdo mají odkaz nebo QR kód, a mohou se promítat na plátně v sále.</p>' +
+    (c.moderation ? '<p>• Nové fotky nejdřív zkontroluje pořadatel a teprve pak se zveřejní.</p>' : '') +
+    '<h2 style="margin-top:20px">Soukromí</h2>' +
+    '<p>• Nesbíráme žádné osobní údaje: žádný e-mail, telefon ani přihlášení.</p>' +
+    '<p>• Z fotek se před odesláním automaticky odstraní GPS poloha.</p>' +
+    '<p>• Které fotky jsou tvoje, ví jen tvůj telefon (záložka „Moje“). Bez vyplněného jména nikdo neuvidí, kdo co nahrál.</p>' +
+    (c.deleteAt ? '<p>• Všechny fotky, vzkazy a komentáře se smažou ' + esc(fmtDate(c.deleteAt, true)) + '.</p>' : '') +
+    '<h2 style="margin-top:20px">Pravidla</h2>' +
+    '<p>• Nepřidávej fotky, které by někoho ponížily nebo mu ublížily.</p>' +
+    '<p>• Nevhodnou fotku nahlas tlačítkem ⚑. Po třech nahlášeních se sama skryje, než ji pořadatel zkontroluje.</p>' +
+    '<p>• Chceš, aby se tvoje fotka smazala? Napiš pořadateli a ten ji odstraní.</p></div></div>';
+}
+
+/* --------------------------------------------------------------- admin */
+function adminHtml() {
+  var sc = S.screen || { paused: false, speed: 6, qr: true };
+  var h = '<div class="wrap">' + topbar('Administrace', '<span class="chip" style="margin-left:auto">' + (S.role === 'owner' ? 'Hlavní' : 'Spolupořadatel') + '</span>');
+  h += '<div class="card glow" style="margin-top:0"><div class="adm-grid">' +
+    '<button data-go="settings">✏️ Upravit stránku</button>' +
+    '<a href="' + esc(APP_URL + '?v=platno') + '" target="_blank">📽 Otevřít plátno</a>' +
+    '<a href="' + esc(APP_URL + '?v=qr') + '" target="_blank">🖨 QR k tisku</a>' +
+    (S.driveUrl ? '<a href="' + esc(S.driveUrl) + '" target="_blank">📁 Složka (originály)</a>' : '') +
+    (S.photosUrl ? '<a href="' + esc(S.photosUrl) + '" target="_blank">🖼 Album Google Fotky</a>' : '') +
+    '<button data-act="share">🔗 QR pro hosty</button></div>' +
+    (S.photosError ? '<div class="warnbox">⚠️ Do Google Fotek se zatím neukládá: ' + esc(S.photosError) + '<br>Postup je v README, krok „Google Fotky“. Na Disk se ukládá dál.</div>' : '') + '</div>';
+
+  h += '<div class="card"><h2>Ovladač plátna</h2><div class="remote">' +
+    '<button data-scr="pause" class="' + (sc.paused ? 'on' : '') + '">' + (sc.paused ? '▶ Pustit' : '⏸ Pauza') + '</button>' +
+    '<button data-scr="next">⏭ Další</button>' +
+    '<button data-scr="qr" class="' + (sc.qr ? 'on' : '') + '">QR v rohu</button>' +
+    [4, 6, 8, 12, 20].map(function (s) { return '<button data-scr="speed" data-v="' + s + '" class="' + (+sc.speed === s ? 'on' : '') + '">' + s + ' s</button>'; }).join('') +
+    '<button data-scr="latest">🆕 Nejnovější</button></div>' +
+    '<p class="muted small" style="margin:10px 0 0">Plátno otevři na notebooku u projektoru a ovládej ho odsud z mobilu. Konkrétní fotku pošleš na plátno z galerie tlačítkem 📽.</p></div>';
+
+  h += '<div class="card"><h2>Moderace</h2><div class="tabs">' +
+    '<button class="tab' + (S.admTab === 'pending' ? ' on' : '') + '" data-admtab="pending">Čeká · ' + S.pending.length + '</button>' +
+    '<button class="tab' + (S.admTab === 'hidden' ? ' on' : '') + '" data-admtab="hidden">Skryté · ' + S.hidden.length + '</button>' +
+    '<button class="tab" data-go="gallery">Zveřejněné · ' + S.photos.length + '</button></div>';
+  var list = S.admTab === 'pending' ? S.pending : S.hidden;
+  if (S.admTab === 'pending' && !S.cfg.moderation) h += '<p class="muted small" style="margin-top:0">Schvalování je vypnuté, fotky se zveřejňují hned. Zapneš ho v „Upravit stránku“.</p>';
+  h += list.length ? list.map(function (p) {
+    return '<div class="pend"><img src="' + esc(IMG.thumb(p.id, 200)) + '" alt="" loading="lazy" data-zoom="' + p.id + '"><div class="sp"><b>' + esc(p.a || 'Anonym') + '</b><br><span class="muted small">' + ago(p.t) + (p.r ? ' · ⚑ ' + p.r + '× nahlášeno' : '') + '</span></div><div class="bt">' +
+      (S.admTab === 'pending' ? '<button class="pill acc" data-adm="approve" data-id="' + p.id + '">✓ Zveřejnit</button><button class="pill" data-adm="hide" data-id="' + p.id + '">Skrýt</button>'
+        : '<button class="pill acc" data-adm="restore" data-id="' + p.id + '">↺ Obnovit</button>') +
+      '<button class="pill danger" data-adm="delete" data-id="' + p.id + '">🗑</button></div></div>';
+  }).join('') : '<p class="muted small">Nic tu není.</p>';
+  h += '</div>';
+
+  if (S.role === 'owner') {
+    h += '<div class="card"><h2>Spolupořadatelé</h2><p class="muted small" style="margin-top:0">Dej přístup do administrace dalším lidem. Každý má vlastní heslo, které mu můžeš kdykoli odebrat.</p>' +
+      S.coAdmins.map(function (a) { return '<div class="pend" style="padding:8px 0"><div class="sp"><b>' + esc(a.name) + '</b></div><button class="pill danger" data-rmco="' + esc(a.id) + '">Odebrat</button></div>'; }).join('') +
+      '<form id="coForm" class="two" style="margin-top:10px"><input class="inp" name="name" placeholder="Jméno" maxlength="40" required><input class="inp" name="pw" placeholder="Heslo (min. 6 znaků)" minlength="6" required></form>' +
+      '<button class="btn btn-glass" style="width:100%;margin-top:8px" type="submit" form="coForm">+ Přidat spolupořadatele</button></div>';
+    h += '<div class="card"><h2>Konec akce</h2><p class="muted small" style="margin-top:0">Datum automatického smazání nastavíš v „Upravit stránku“. Tady můžeš smazat všechno hned (fotky jdou do koše na Disku, 30 dní je jde obnovit).</p>' +
+      '<button class="btn btn-glass" style="width:100%;color:var(--bad)" data-act="wipe">🗑 Smazat všechny fotky, vzkazy a komentáře</button></div>';
+  }
+  return h + '</div>';
+}
+
+function loadAdminData() {
+  if (!isAdmin()) return;
+  adm('pending').then(function (l) { S.pending = l; if (S.view === 'admin') render(true); }).catch(function () {});
+  adm('hidden').then(function (l) { S.hidden = l; if (S.view === 'admin') render(true); }).catch(function () {});
+  api('getScreen').then(function (s) { S.screen = s; if (S.view === 'admin') render(true); }).catch(function () {});
+}
+
+function adminLogin(key, silent) {
+  return api('admin', key, 'check', null, null).then(function (r) {
+    S.admin = key; S.role = r.role; S.driveUrl = r.driveUrl; S.photosUrl = r.photosUrl; S.photosError = r.photosError; S.coAdmins = r.coAdmins || [];
+    save('admin', key);
+    $('#modal').hidden = true; loadAdminData();
+    if (!silent) { toast('Přihlášen jako pořadatel'); go('admin'); } else render(true);
+  }).catch(function () {
+    save('admin', ''); S.admin = '';
+    if (!silent) { var pw = $('#pw'); if (pw) { pw.value = ''; pw.focus(); } }
+    toast('Špatné heslo pořadatele');
+  });
+}
+
+function showLogin() {
+  modal('<h2>Pořadatel</h2><p class="muted small">Zadej heslo pořadatele nebo spolupořadatele.</p>' +
+    '<form id="loginForm"><input class="inp" type="password" id="pw" placeholder="Heslo" autocomplete="current-password" style="margin:8px 0 10px">' +
+    '<button class="btn btn-main" style="width:100%;min-height:54px;font-size:16px">Přihlásit</button></form>');
+  setTimeout(function () { $('#pw').focus(); }, 50);
+  $('#loginForm').onsubmit = function (e) { e.preventDefault(); var v = $('#pw').value.trim(); if (v) adminLogin(v); };
+}
+
+function screenCmd(p) {
+  adm('screen', p).then(function (s) { S.screen = s; if (S.view === 'admin') render(true); toast('Plátno: ' + (p.next ? 'další fotka' : p.show ? 'fotka poslána na plátno' : 'nastaveno')); })
+    .catch(function (e) { toast('Chyba: ' + errMsg(e)); });
+}
+
+function adminAct(action, id) {
+  if (action === 'delete' && !confirm('Opravdu smazat? Fotka půjde do koše na Disku.')) return;
+  adm(action, id).then(function () {
+    var moved = S.photos.concat(S.pending, S.hidden).filter(function (p) { return p.id === id; })[0];
+    S.photos = S.photos.filter(function (p) { return p.id !== id; });
+    S.pending = S.pending.filter(function (p) { return p.id !== id; });
+    S.hidden = S.hidden.filter(function (p) { return p.id !== id; });
+    if (moved && action === 'hide') S.hidden.unshift(moved);
+    if (moved && (action === 'approve' || action === 'restore')) { moved.r = 0; S.photos.unshift(moved); S.photos.sort(function (a, b) { return b.t - a.t; }); }
+    if (!lb.hidden) { S.lbList = S.lbList.filter(function (p) { return p.id !== id; }); if (S.lbIndex >= S.lbList.length) S.lbIndex--; S.lbList.length ? showLb() : closeLb(); }
+    render(true);
+    toast({ approve: 'Zveřejněno ✓', restore: 'Obnoveno ✓', hide: 'Skryto', delete: 'Smazáno' }[action]);
+  }).catch(function (e) { toast('Chyba: ' + errMsg(e)); });
+}
+
+/* ------------------------------------------------------------ settings */
+var draft = null;
+function settingsHtml() {
+  var c = draft || (draft = JSON.parse(JSON.stringify(S.cfg)));
+  var prog = c.program && c.program.length ? c.program : [['', '']];
+  var imgRow = function (key, label, cls) {
+    var id = c[key];
+    return '<label class="lbl">' + label + '</label><div class="imgrow">' +
+      (id ? '<img class="ph ' + cls + '" src="' + esc(IMG.thumb(id, 400)) + '" alt="">' : '<span class="ph ' + cls + '"></span>') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="sbtn" data-img="' + key + '">' + (id ? 'Změnit' : 'Nahrát') + '</button>' +
+      (id ? '<button type="button" class="sbtn" data-imgdel="' + key + '">Odebrat</button>' : '') + '</div></div>';
+  };
+  var h = '<div class="wrap">' + topbar('Upravit stránku') + '<form id="setForm">';
+  h += '<div class="card glow" style="margin-top:0"><h2>Vzhled</h2>' + imgRow('avatarId', 'Profilová fotka', '') + imgRow('coverId', 'Úvodní fotka (pozadí nahoře)', 'cover') +
+    '<label class="lbl">Barvy</label><div class="swatches">' + Object.keys(THEMES).map(function (k) {
+      return '<button type="button" class="sw' + (c.theme === k ? ' on' : '') + '" data-theme="' + k + '" title="' + THEME_NAMES[k] + '" aria-label="' + THEME_NAMES[k] + '" style="background:linear-gradient(135deg,' + THEMES[k].join(',') + ')"></button>';
+    }).join('') + '</div>' +
+    '<label class="lbl">Písmo nadpisů</label><div class="fonts">' + Object.keys(FONTS).map(function (k) {
+      return '<button type="button" class="' + (c.font === k ? 'on' : '') + '" data-font="' + k + '" style="font-family:\'' + FONTS[k][0] + '\'">' + FONTS[k][1] + '</button>';
+    }).join('') + '</div></div>';
+  h += '<div class="card"><h2>Texty</h2>' +
+    '<label class="lbl">Název akce</label><input class="inp" name="title" maxlength="80" required value="' + esc(c.title) + '">' +
+    '<label class="lbl">Podnadpis</label><input class="inp" name="subtitle" maxlength="120" value="' + esc(c.subtitle) + '">' +
+    '<div class="two"><div><label class="lbl">Datum</label><input class="inp" type="date" name="date" value="' + esc(c.date) + '"></div>' +
+    '<div><label class="lbl">Místo</label><input class="inp" name="place" maxlength="80" value="' + esc(c.place) + '"></div></div>' +
+    '<label class="lbl">Uvítací text</label><textarea class="inp" name="welcome" maxlength="800">' + esc(c.welcome) + '</textarea>' +
+    '<div class="two"><div><label class="lbl">Název vzkazů</label><input class="inp" name="msgTitle" maxlength="60" value="' + esc(c.msgTitle) + '"></div>' +
+    '<div><label class="lbl">Popis vzkazů</label><input class="inp" name="msgSub" maxlength="120" value="' + esc(c.msgSub) + '"></div></div></div>';
+  h += '<div class="card"><h2>Program</h2><div id="progRows">' + prog.map(progRow).join('') + '</div>' +
+    '<button type="button" class="sbtn" id="addRow" style="width:100%;margin-top:4px">+ Přidat bod programu</button></div>';
+  h += '<div class="card"><h2>Fotky a galerie</h2>' +
+    '<label class="lbl">Kvalita nahraných fotek</label><select class="inp" name="maxSize">' +
+    [[0, 'Plná kvalita (originál)'], [4000, 'Velmi vysoká (4000 px)'], [2560, 'Vysoká (2560 px, rychlejší)'], [1600, 'Střední (1600 px, nejrychlejší)']].map(function (o) {
+      return '<option value="' + o[0] + '"' + (+c.maxSize === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+    '<label class="lbl">Odkaz na sdílené album (nepovinné)</label><input class="inp" name="icloudUrl" type="url" placeholder="https://…" value="' + esc(c.icloudUrl) + '">' +
+    '<label class="chk"><input type="checkbox" name="moderation"' + (c.moderation ? ' checked' : '') + '> Schvalovat fotky před zveřejněním</label>' +
+    '<label class="chk"><input type="checkbox" name="reactions"' + (c.reactions ? ' checked' : '') + '> Reakce ♥ 😂</label>' +
+    '<label class="chk"><input type="checkbox" name="comments"' + (c.comments ? ' checked' : '') + '> Komentáře u fotek</label>' +
+    '<label class="chk"><input type="checkbox" name="showDriveLink"' + (c.showDriveLink ? ' checked' : '') + '> Hosté smí stáhnout všechny fotky</label>' +
+    '<label class="lbl">Automaticky smazat vše dne (nepovinné)</label><input class="inp" type="date" name="deleteAt" value="' + esc(c.deleteAt) + '"></div>';
+  h += '<div class="savebar"><button class="btn btn-main" style="width:100%" id="saveBtn">Uložit změny</button></div></form>';
+  return h + '<input type="file" id="setImgIn" accept="image/*" hidden></div>';
+}
+
+function progRow(r) {
+  return '<div class="prow"><input class="inp" name="pt" placeholder="19:00" maxlength="16" value="' + esc(r[0]) + '">' +
+    '<input class="inp" name="px" placeholder="Co se děje" maxlength="140" value="' + esc(r[1]) + '">' +
+    '<div class="x"><button type="button" data-up title="Posunout nahoru">↑</button><button type="button" data-rm title="Odebrat">✕</button></div></div>';
+}
+
+function collectSettings() {
+  var fd = new FormData($('#setForm')), pt = fd.getAll('pt'), px = fd.getAll('px');
+  return {
+    title: fd.get('title'), subtitle: fd.get('subtitle'), date: fd.get('date'), place: fd.get('place'), welcome: fd.get('welcome'),
+    msgTitle: fd.get('msgTitle'), msgSub: fd.get('msgSub'),
+    program: pt.map(function (t, i) { return [String(t).trim(), String(px[i] || '').trim()]; }).filter(function (r) { return r[0] || r[1]; }),
+    icloudUrl: String(fd.get('icloudUrl') || '').trim(), maxSize: +fd.get('maxSize'),
+    moderation: !!fd.get('moderation'), showDriveLink: !!fd.get('showDriveLink'),
+    comments: !!fd.get('comments'), reactions: !!fd.get('reactions'), deleteAt: fd.get('deleteAt') || '',
+    theme: draft.theme, font: draft.font,
+  };
+}
+// Překreslí formulář (po změně fotky, barev, písma), ale zachová rozepsané údaje.
+function reSettings() {
+  var d = collectSettings(); Object.keys(d).forEach(function (k) { draft[k] = d[k]; });
+  var y = window.scrollY; $('#app').innerHTML = settingsHtml(); bindSettings(); window.scrollTo(0, y);
+}
+
+function cropImage(file, size, square) {
+  var url = URL.createObjectURL(file);
+  return loadImage(url).then(function (img) {
+    var w = img.naturalWidth, h = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d');
+    if (square) { var m = Math.min(w, h); c.width = c.height = Math.min(size, m); x.drawImage(img, (w - m) / 2, (h - m) / 2, m, m, 0, 0, c.width, c.height); }
+    else { var s = Math.min(1, size / Math.max(w, h)); c.width = Math.round(w * s); c.height = Math.round(h * s); x.drawImage(img, 0, 0, c.width, c.height); }
+    URL.revokeObjectURL(url);
+    return new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.9); });
+  });
+}
+
+function bindSettings() {
+  var form = $('#setForm'), rows = $('#progRows'), imgIn = $('#setImgIn'), which = '';
+  $('#addRow').onclick = function () { rows.insertAdjacentHTML('beforeend', progRow(['', ''])); rows.lastElementChild.querySelector('input').focus(); };
+  rows.onclick = function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var row = b.closest('.prow');
+    if (b.hasAttribute('data-rm')) row.remove();
+    else if (b.hasAttribute('data-up') && row.previousElementSibling) rows.insertBefore(row, row.previousElementSibling);
+  };
+  form.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-img],button[data-imgdel],button[data-theme],button[data-font]'); if (!b || !form.contains(b)) return;
+    if (b.hasAttribute('data-theme')) { draft.theme = b.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', draft.theme); reSettings(); return; }
+    if (b.hasAttribute('data-font')) { draft.font = b.getAttribute('data-font'); document.documentElement.setAttribute('data-font', draft.font); reSettings(); return; }
+    if (b.hasAttribute('data-img')) { which = b.getAttribute('data-img'); imgIn.click(); return; }
+    var k = b.getAttribute('data-imgdel');
+    if (!confirm('Odebrat fotku?')) return;
+    adm(k === 'avatarId' ? 'setAvatar' : 'setCover', null).then(function () { S.cfg[k] = ''; draft[k] = ''; reSettings(); });
+  });
+  imgIn.onchange = function () {
+    var f = imgIn.files[0]; imgIn.value = ''; if (!f) return;
+    toast('Nahrávám fotku…', null, null, 30000);
+    cropImage(f, which === 'avatarId' ? 800 : 2000, which === 'avatarId').then(toB64).then(function (data) {
+      return adm(which === 'avatarId' ? 'setAvatar' : 'setCover', { data: data, mime: 'image/jpeg' });
+    }).then(function (id) { S.cfg[which] = id; draft[which] = id; reSettings(); toast('Fotka uložena ✓'); })
+      .catch(function (e) { toast('Nepodařilo se: ' + errMsg(e)); });
+  };
+  form.onsubmit = function (e) {
+    e.preventDefault();
+    var data = collectSettings(), btn = $('#saveBtn');
+    btn.disabled = true; btn.textContent = 'Ukládám…';
+    adm('saveSettings', data).then(function (st) {
+      var driveUrl = S.cfg.driveUrl || S.driveUrl;
+      Object.keys(st).forEach(function (k) { S.cfg[k] = st[k]; });
+      S.cfg.driveUrl = st.showDriveLink ? driveUrl : '';
+      applyTheme();
+      toast('Uloženo ✓ Hosté uvidí změny po obnovení stránky');
+      go('home');
+    }).catch(function (err) { btn.disabled = false; btn.textContent = 'Uložit změny'; toast('Nepodařilo se: ' + errMsg(err)); });
+  };
+}
+
+/* ------------------------------------------------------------ bindings */
+var moreObs = null;
+function bindView() {
+  var nameIn = $('#nameIn');
+  if (nameIn) nameIn.oninput = function () { S.name = nameIn.value.trim(); save('name', S.name); };
+  if (moreObs) moreObs.disconnect();
+  var more = $('#more');
+  if (more && 'IntersectionObserver' in window) {
+    moreObs = new IntersectionObserver(function (e) { if (e[0].isIntersecting) { S.shown += 60; render(true); } }, { rootMargin: '700px' });
+    moreObs.observe(more);
+  }
+  var form = $('#msgForm');
+  if (form) form.onsubmit = function (e) {
+    e.preventDefault();
+    var fd = new FormData(form), btn = form.querySelector('button');
+    var m = { from: fd.get('from'), to: fd.get('to'), text: fd.get('text') };
+    if (!String(m.text).trim()) return;
+    btn.disabled = true; btn.textContent = 'Posílám…';
+    if (m.from) { S.name = String(m.from).trim(); save('name', S.name); }
+    api('addMessage', m).then(function (list) {
+      S.messages = list; S.msgCount = list.length; updateMsgList();
+      form.querySelector('[name=text]').value = ''; form.querySelector('[name=to]').value = '';
+      btn.disabled = false; btn.textContent = 'Poslat vzkaz'; toast('Vzkaz odeslán ✓');
+    }).catch(function (err) { btn.disabled = false; btn.textContent = 'Poslat vzkaz'; toast('Nepodařilo se: ' + errMsg(err)); });
+  };
+  if (S.view === 'messages' && S.messages === null) {
+    api('listMessages').then(function (l) { S.messages = l; S.msgCount = l.length; updateMsgList(); }).catch(function () { S.messages = []; updateMsgList(); });
+  }
+  var co = $('#coForm');
+  if (co) co.onsubmit = function (e) {
+    e.preventDefault(); var fd = new FormData(co);
+    adm('addCoAdmin', fd.get('name'), fd.get('pw')).then(function (l) { S.coAdmins = l; render(true); toast('Spolupořadatel přidán. Pošli mu odkaz a heslo.'); })
+      .catch(function (err) { toast(errMsg(err)); });
+  };
+}
+
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-go],[data-act],[data-tab],.tile,[data-adm],[data-delmsg],[data-scr],[data-admtab],[data-rmco],[data-zoom]');
+  if (!t) return;
+  if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
+  if (t.closest('#setForm')) return;
+  if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.shown = 60; render(true); return; }
+  if (t.hasAttribute('data-admtab')) { S.admTab = t.getAttribute('data-admtab'); render(true); return; }
+  if (t.classList.contains('tile')) { S.lbList = S.view === 'gallery' ? currentList() : S.photos; openLb(+t.getAttribute('data-i')); return; }
+  if (t.hasAttribute('data-zoom')) { var src = S.admTab === 'pending' ? S.pending : S.hidden, zid = t.getAttribute('data-zoom'); S.lbList = src; openLb(src.map(function (p) { return p.id; }).indexOf(zid)); return; }
+  if (t.hasAttribute('data-adm')) { adminAct(t.getAttribute('data-adm'), t.getAttribute('data-id')); return; }
+  if (t.hasAttribute('data-rmco')) { if (confirm('Odebrat spolupořadatele?')) adm('removeCoAdmin', t.getAttribute('data-rmco')).then(function (l) { S.coAdmins = l; render(true); }); return; }
+  if (t.hasAttribute('data-delmsg')) {
+    if (!confirm('Smazat vzkaz?')) return;
+    adm('delMsg', t.getAttribute('data-delmsg')).then(function (l) { S.messages = l; S.msgCount = l.length; updateMsgList(); });
+    return;
+  }
+  if (t.hasAttribute('data-scr')) {
+    var k = t.getAttribute('data-scr'), sc = S.screen || {};
+    if (k === 'pause') screenCmd({ paused: !sc.paused });
+    else if (k === 'next') screenCmd({ next: true });
+    else if (k === 'qr') screenCmd({ qr: !sc.qr });
+    else if (k === 'speed') screenCmd({ speed: +t.getAttribute('data-v') });
+    else if (k === 'latest') { if (S.photos[0]) screenCmd({ show: S.photos[0].id }); else toast('Zatím žádná fotka'); }
+    return;
+  }
+  var a = t.getAttribute('data-act');
+  if (a === 'cam') $('#camIn').click();
+  else if (a === 'pick') $('#pickIn').click();
+  else if (a === 'share') showQrModal();
+  else if (a === 'login') showLogin();
+  else if (a === 'logout') { S.role = ''; S.admin = ''; save('admin', ''); go('home'); toast('Odhlášeno'); }
+  else if (a === 'wipe') {
+    if (!confirm('Opravdu smazat VŠECHNY fotky, vzkazy a komentáře?')) return;
+    if (prompt('Pro potvrzení napiš SMAZAT') !== 'SMAZAT') return;
+    adm('wipe').then(function () { S.photos = []; S.pending = []; S.hidden = []; S.msgCount = 0; S.messages = null; render(true); toast('Vše smazáno'); })
+      .catch(function (err) { toast(errMsg(err)); });
+  }
+});
+
+$('#camIn').onchange = function () { addFiles(this.files, true); this.value = ''; };
+$('#pickIn').onchange = function () { addFiles(this.files, false); this.value = ''; };
+
+/* ============================================================== modals */
+function modal(html) {
+  $('#modalBox').innerHTML = html + '<button class="btn btn-glass" style="width:100%;margin-top:12px" data-close>Zavřít</button>';
+  $('#modal').hidden = false;
+}
+$('#modal').addEventListener('click', function (e) { if (e.target === this || e.target.hasAttribute('data-close')) this.hidden = true; });
+
+function qr(el, size) {
+  if (!el) return;
+  el.innerHTML = '';
+  if (window.QRCode) new QRCode(el, { text: APP_URL, width: size, height: size, colorDark: '#05060b', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  else el.innerHTML = '<img alt="QR kód" width="' + size + '" height="' + size + '" src="https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(APP_URL) + '">';
+}
+
+function showQrModal() {
+  modal('<h2>Naskenuj a foť</h2><p class="muted small" style="margin:0">Ukaž kód ostatním. Otevře se jim galerie, nic neinstalují ani se nepřihlašují.</p>' +
+    '<div class="qr-box" id="qrHere"></div>' +
+    '<button class="btn btn-main" style="width:100%;min-height:52px;font-size:16px" id="shareLink">Sdílet odkaz</button>');
+  qr($('#qrHere'), 240);
+  $('#shareLink').onclick = function () {
+    if (navigator.share) navigator.share({ title: S.cfg.title, url: APP_URL }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(APP_URL).then(function () { toast('Odkaz zkopírován'); });
+  };
+}
+
+/* ============================================================ lightbox */
+var lb = $('#lb'), lbImg = $('#lbImg'), sheet = $('#sheet');
+function openLb(i) { if (i < 0 || !S.lbList[i]) return; S.lbIndex = i; lb.hidden = false; document.body.style.overflow = 'hidden'; showLb(); }
+function closeLb() { lb.hidden = true; closeSheet(); document.body.style.overflow = ''; }
+function curPhoto() { return S.lbList[S.lbIndex]; }
+function showLb() {
+  var p = curPhoto(); if (!p) return closeLb();
+  lbImg.style.opacity = '.3';
+  lbImg.onload = function () { lbImg.style.opacity = '1'; };
+  lbImg.onerror = function () {
+    if (lbImg.src.indexOf('lh3') > -1) lbImg.src = IMG.bigAlt(p.id);
+    else if (S.local[p.id] && lbImg.src !== S.local[p.id]) lbImg.src = S.local[p.id];
+    lbImg.style.opacity = '1';
+  };
+  lbImg.src = p._local && S.local[p.id] ? S.local[p.id] : IMG.big(p.id);
+  $('#lbWho').textContent = p.a || 'Anonym';
+  $('#lbWhen').textContent = ago(p.t) + ' · ' + (S.lbIndex + 1) + ' / ' + S.lbList.length;
+  var L = S.liked[p.id] || {}, c = S.cfg;
+  var bot = (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h">♥ ' + (p.hr || '') + '</button><button class="pill' + (L.l ? ' on' : '') + '" data-r="l">😂 ' + (p.lr || '') + '</button>' : '') +
+    (c.comments ? '<button class="pill" data-cm>💬 ' + (p.c || '') + '</button>' : '') +
+    '<a class="pill" href="' + esc(IMG.dl(p.id)) + '" target="_blank" rel="noopener">⬇ Stáhnout</a>' +
+    '<button class="pill" data-share aria-label="Sdílet">↗</button>' +
+    (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>');
+  if (isAdmin()) bot += '<button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button>';
+  $('#lbBot').innerHTML = bot;
+  [S.lbIndex + 1, S.lbIndex - 1].forEach(function (j) { var q = S.lbList[j]; if (q && !q._local) new Image().src = IMG.big(q.id); });
+  if (sheet.classList.contains('show')) loadComments();
+}
+function stepLb(d) {
+  var n = S.lbIndex + d;
+  if (n < 0 || n >= S.lbList.length) { lbImg.style.transform = 'translateX(' + (d * -30) + 'px)'; setTimeout(function () { lbImg.style.transform = ''; }, 180); return; }
+  S.lbIndex = n; showLb();
+}
+$('#lbClose').onclick = closeLb;
+$('#lbPrev').onclick = function () { stepLb(-1); };
+$('#lbNext').onclick = function () { stepLb(1); };
+document.addEventListener('keydown', function (e) {
+  if (lb.hidden || document.activeElement === $('#cmText')) return;
+  if (e.key === 'Escape') { if (sheet.classList.contains('show')) closeSheet(); else closeLb(); }
+  else if (e.key === 'ArrowLeft') stepLb(-1); else if (e.key === 'ArrowRight') stepLb(1);
+});
+(function () {
+  var x0 = null, y0 = 0, st = $('#lbStage');
+  st.addEventListener('touchstart', function (e) { if (e.touches.length > 1) { x0 = null; return; } x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  st.addEventListener('touchmove', function (e) { if (x0 === null) return; lbImg.style.transform = 'translateX(' + (e.touches[0].clientX - x0) * .6 + 'px)'; }, { passive: true });
+  st.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    lbImg.style.transform = ''; x0 = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) stepLb(dx < 0 ? 1 : -1);
+    else if (dy > 120) closeLb();
+  });
+})();
+$('#lbBot').addEventListener('click', function (e) {
+  var t = e.target.closest('button'); if (!t || t.hasAttribute('data-adm')) return;
+  var p = curPhoto(); if (!p) return;
+  if (t.hasAttribute('data-r')) {
+    var k = t.getAttribute('data-r'), L = S.liked[p.id] || {}, on = !L[k], key = k === 'h' ? 'hr' : 'lr';
+    L[k] = on; S.liked[p.id] = L; save('liked', S.liked);
+    p[key] = Math.max(0, (p[key] || 0) + (on ? 1 : -1)); showLb();
+    api('react', p.id, k, on ? 1 : -1).then(function (n) { p[key] = n; if (!lb.hidden && curPhoto() === p) showLb(); }).catch(function () {});
+  } else if (t.hasAttribute('data-cm')) openSheet();
+  else if (t.hasAttribute('data-share')) {
+    var url = IMG.big(p.id);
+    if (navigator.share) navigator.share({ title: S.cfg.title, url: url }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast('Odkaz na fotku zkopírován'); });
+  } else if (t.hasAttribute('data-report')) {
+    if (!confirm('Nahlásit tuto fotku jako nevhodnou?')) return;
+    api('report', p.id).then(function () { toast('Díky, fotka nahlášena'); }).catch(function () {});
+  } else if (t.hasAttribute('data-project')) screenCmd({ show: p.id });
+});
+
+/* comments */
+function openSheet() { sheet.classList.add('show'); loadComments(); }
+function closeSheet() { sheet.classList.remove('show'); }
+$('#sheetClose').onclick = closeSheet;
+function loadComments() {
+  var p = curPhoto(); if (!p) return;
+  $('#cmList').innerHTML = '<div class="empty small">Načítám…</div>';
+  api('listComments', p.id).then(function (l) { if (curPhoto() === p) renderComments(l); }).catch(function () { $('#cmList').innerHTML = '<div class="empty small">Nepodařilo se načíst.</div>'; });
+}
+function renderComments(l) {
+  var p = curPhoto(); if (!p) return;
+  p.c = l.length;
+  $('#cmList').innerHTML = l.length ? l.map(function (c) {
+    return '<div class="cm"><b>' + esc(c.n || 'Anonym') + '</b><p>' + esc(c.x) + '</p><div class="meta"><span>' + ago(c.t) + '</span>' +
+      (isAdmin() ? '<button data-delcm="' + esc(c.id) + '">Smazat</button>' : '') + '</div></div>';
+  }).join('') : '<div class="empty small">Zatím žádný komentář. Napiš první!</div>';
+  var b = $('#lbBot [data-cm]'); if (b) b.textContent = '💬 ' + (p.c || '');
+}
+$('#cmList').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-delcm]'); if (!b) return;
+  adm('delComment', curPhoto().id, b.getAttribute('data-delcm')).then(renderComments);
+});
+$('#cmForm').onsubmit = function (e) {
+  e.preventDefault();
+  var inp = $('#cmText'), text = inp.value.trim(), p = curPhoto(); if (!text || !p) return;
+  inp.disabled = true;
+  api('addComment', p.id, { name: S.name, text: text }).then(function (l) { inp.value = ''; inp.disabled = false; if (curPhoto() === p) renderComments(l); })
+    .catch(function (err) { inp.disabled = false; toast('Nepodařilo se: ' + errMsg(err)); });
+};
+
+/* ================================================================ data */
+function merge(server) {
+  var ids = {}; server.forEach(function (p) { ids[p.id] = 1; });
+  var keep = S.photos.filter(function (p) { return p._local && !ids[p.id] && Date.now() - p.t < 120000; });
+  server.forEach(function (p) { if (S.local[p.id]) p._local = 1; });
+  var sig = function (l) { return l.map(function (p) { return p.id + ':' + p.hr + ':' + p.lr + ':' + p.c; }).join(); };
+  var before = sig(S.photos);
+  S.photos = keep.concat(server);
+  return before !== sig(S.photos);
+}
+
+function poll() {
+  return api('listPhotos').then(function (list) {
+    if (merge(list) && lb.hidden) refresh();
+    if (isAdmin() && S.view === 'admin') loadAdminData();
+  }).catch(function () {});
+}
+
+function start() {
+  render();
+  api('init').then(function (d) {
+    S.cfg = d.cfg; S.msgCount = d.messages; merge(d.photos);
+    applyTheme();
+    if (PARAMS.v === 'platno') return startScreen();
+    if (PARAMS.v === 'qr') return startPrint();
+    render();
+    if (S.admin) adminLogin(S.admin, true);
+    IDB.all().then(function (items) {
+      if (!items || !items.length) return;
+      items.forEach(function (it) { it.url = URL.createObjectURL(it.blob); it.tries = 0; S.queue.push(it); });
+      S.total += items.length; pump();
+    });
+    setInterval(function () { if (!document.hidden) poll(); }, 20000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  }).catch(function (e) {
+    $('#app').innerHTML = '<div class="wrap"><div class="card empty" style="margin-top:30vh"><div class="big">⚠️</div>Galerii se nepodařilo načíst.<br><span class="small">' + esc(errMsg(e)) + '</span><br><br><button class="btn btn-glass" onclick="location.reload()" style="margin:0 auto">Zkusit znovu</button></div></div>';
+  });
+}
+
+/* ============================================================== plátno */
+function startScreen() {
+  document.body.style.overflow = 'hidden';
+  $('#app').innerHTML = '<div class="screen" id="scr"><div class="layer" id="L0"></div><div class="layer" id="L1"></div>' +
+    '<div class="hud"><span class="t grad">' + esc(S.cfg.title) + '</span><span class="n" id="cnt"></span></div>' +
+    '<div class="cap" id="cap"></div>' +
+    '<div class="corner" id="corner"><div class="q" id="scrQr"></div><div style="margin-top:.6vw">Přidej svou fotku</div></div>' +
+    '<div class="controls"><button class="pill" id="sPause">⏸</button><button class="pill" id="sNext">⏭</button><button class="pill" id="sFull">⛶ Celá obrazovka</button></div>' +
+    '<div class="wait" id="wait"><div><b class="grad">Naskenuj a foť</b><span>První fotka se objeví tady</span><br><div class="q" id="waitQr"></div></div></div></div>';
+  qr($('#scrQr'), 220); qr($('#waitQr'), 320);
+  var scr = $('#scr'), layers = [$('#L0'), $('#L1')], cur = 0, seen = {}, order = S.photos.slice(), pos = -1, fresh = [];
+  var st = { paused: false, speed: 6, qr: true, next: 0, show: '', showAt: 0 }, lastNext = null, lastShow = null, timer = 0, hideCtl = 0;
+  S.photos.forEach(function (p) { seen[p.id] = 1; });
+  function counter() { $('#cnt').textContent = order.length + ' ' + plural(order.length, 'fotka', 'fotky', 'fotek'); }
+  counter();
+
+  function nextPhoto() {
+    if (fresh.length) { var f = fresh.shift(); f._new = 1; return f; }
+    if (!order.length) return null;
+    pos = (pos + 1) % order.length;
+    return order[pos];
+  }
+  function show(p) {
+    if (!p) { $('#wait').style.display = 'grid'; $('#corner').style.display = 'none'; return; }
+    $('#wait').style.display = 'none'; $('#corner').style.display = st.qr ? 'block' : 'none';
+    var img = new Image();
+    img.onload = function () {
+      cur = 1 - cur;
+      var L = layers[cur];
+      L.innerHTML = '<div class="blur" style="background-image:url(\'' + img.src + '\')"></div>';
+      L.appendChild(img);
+      layers[1 - cur].classList.remove('on'); L.classList.add('on');
+      $('#cap').innerHTML = (p._new ? '<span class="newb">NOVÁ FOTKA</span>' : '') + (p.a ? '📸 ' + esc(p.a) : '');
+      p._new = 0;
+    };
+    img.onerror = function () { if (img.src.indexOf('lh3') > -1) img.src = IMG.bigAlt(p.id); else schedule(800); };
+    img.src = IMG.big(p.id);
+  }
+  function tick() { if (!st.paused) show(nextPhoto()); schedule(); }
+  function schedule(ms) { clearTimeout(timer); timer = setTimeout(tick, ms || st.speed * 1000); }
+  tick();
+
+  function pullPhotos() {
+    api('listPhotos').then(function (list) {
+      list.slice().reverse().forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; fresh.push(p); } });
+      var ids = {}; list.forEach(function (p) { ids[p.id] = 1; });
+      order = list; fresh = fresh.filter(function (p) { return ids[p.id]; });
+      if (pos >= order.length) pos = -1;
+      counter();
+      if ($('#wait').style.display !== 'none' && (fresh.length || order.length)) tick();
+    }).catch(function () {});
+  }
+  function pullScreen() {
+    api('getScreen').then(function (s) {
+      var speedChanged = s.speed !== st.speed;
+      st = s;
+      $('#corner').style.display = st.qr && $('#wait').style.display === 'none' ? 'block' : 'none';
+      $('#sPause').textContent = st.paused ? '▶' : '⏸';
+      if (lastNext !== null && s.next !== lastNext) { show(nextPhoto()); schedule(); }
+      if (lastShow !== null && s.showAt !== lastShow && s.show) {
+        var p = order.filter(function (x) { return x.id === s.show; })[0] || { id: s.show, a: '' };
+        show(p); schedule(Math.max(st.speed, 10) * 1000);
+      }
+      if (speedChanged) schedule();
+      lastNext = s.next; lastShow = s.showAt;
+    }).catch(function () {});
+  }
+  pullScreen();
+  setInterval(pullPhotos, 10000);
+  setInterval(pullScreen, 3000);
+
+  scr.addEventListener('mousemove', showCtl); scr.addEventListener('click', showCtl);
+  function showCtl() { scr.classList.add('ctl'); clearTimeout(hideCtl); hideCtl = setTimeout(function () { scr.classList.remove('ctl'); }, 3000); }
+  $('#sPause').onclick = function (e) { e.stopPropagation(); st.paused = !st.paused; this.textContent = st.paused ? '▶' : '⏸'; };
+  $('#sNext').onclick = function (e) { e.stopPropagation(); show(nextPhoto()); schedule(); };
+  $('#sFull').onclick = function (e) { e.stopPropagation(); var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || function () {}).call(d); };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === ' ') { e.preventDefault(); $('#sPause').click(); } else if (e.key === 'ArrowRight') $('#sNext').click(); else if (e.key === 'f') $('#sFull').click();
+  });
+}
+
+/* ============================================================ QR print */
+function startPrint() {
+  var c = S.cfg, cards = '';
+  $('.bg').style.display = 'none';
+  for (var i = 0; i < 6; i++) cards += '<div class="tcard"><div class="disp" style="font-size:20px">' + esc(c.title) + '</div><div class="q" id="tq' + i + '"></div><b>Naskenuj · Vyfoť · Hotovo</b><div style="font-size:12px;color:#666">Bez aplikace, bez registrace</div></div>';
+  $('#app').innerHTML = '<div class="print"><div class="toolbar"><button onclick="window.print()">🖨 Vytisknout</button><button id="dlPng">⬇ Stáhnout QR (PNG)</button></div>' +
+    '<div class="poster"><div style="letter-spacing:.3em;font-size:12px;text-transform:uppercase;opacity:.7">Sdílená galerie</div><h1>' + esc(c.title) + '</h1>' +
+    (c.subtitle ? '<div style="font-size:17px;opacity:.8">' + esc(c.subtitle) + '</div>' : '') +
+    '<div class="big-q" id="bigQ"></div><div class="steps">1. Naskenuj &nbsp;·&nbsp; 2. Vyfoť &nbsp;·&nbsp; 3. Hotovo</div>' +
+    '<p style="opacity:.75;margin-bottom:0">Bez aplikace, bez registrace. Všechny fotky uvidíte v galerii i na plátně.</p></div>' +
+    '<div class="cards">' + cards + '</div></div>';
+  qr($('#bigQ'), 600);
+  for (var j = 0; j < 6; j++) qr($('#tq' + j), 300);
+  $('#dlPng').onclick = function () {
+    var cv = $('#bigQ canvas'), im = $('#bigQ img');
+    if (cv) cv.toBlob(function (b) { download(b, 'qr-galerie.png'); });
+    else if (im) window.open(im.src, '_blank');
+  };
+}
+
+start();
+})();
 </script>
 </body>
 </html>
