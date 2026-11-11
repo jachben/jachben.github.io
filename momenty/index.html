@@ -116,14 +116,15 @@
   .sec-head button { color: var(--a1); font-weight: 600; }
 
   .program { list-style: none; margin: 0; padding: 0; position: relative; }
-  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: var(--a1); }
+  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(#22e5ff, #8b5cff, #ff3df2); border-radius: 2px; }
   .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
-  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 0; background: var(--bg); border: 2px solid var(--text); }
-  .program time { color: var(--a2); font-family: var(--display); font-variant-numeric: tabular-nums; min-width: 58px; font-size: 14px; }
+  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid #8b5cff; }
+  .program time { color: #22e5ff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 58px; font-size: 15px; }
   .program li.done { opacity: .45; }
   .program li.now span { font-weight: 700; }
-  .program li.now { color: var(--text); }
-  .program li.now::before { background: var(--a1); border-color: var(--a1); }
+  .program li.now { color: #fff; }
+  .program li.now::before { background: #22e5ff; border-color: #22e5ff; box-shadow: 0 0 14px #22e5ff; }
+  .program li.now::after { content: "TEĎ"; margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .12em; padding: 3px 9px; border-radius: 99px; background: linear-gradient(90deg, #22e5ff, #8b5cff); color: #04060d; font-family: 'Space Grotesk', sans-serif; }
   .program li.now::after { content: "TEĎ"; margin-left: auto; font-family: var(--display); font-size: 11px; letter-spacing: .08em; padding: 3px 8px; border-radius: 0; background: var(--a1); color: #fff; }
 
   /* grid */
