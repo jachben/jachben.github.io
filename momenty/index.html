@@ -115,16 +115,16 @@
   .sec-head h2 { margin: 0; }
   .sec-head button { color: var(--a1); font-weight: 600; }
 
-  .program { list-style: none; margin: 0; padding: 0; position: relative; }
-  .program::before { content: ""; position: absolute; left: 61px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(#22e5ff, #8b5cff, #ff3df2); border-radius: 2px; }
-  .program li { position: relative; display: flex; gap: 26px; padding: 9px 0; align-items: baseline; }
-  .program li::before { content: ""; position: absolute; left: 57px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid #8b5cff; }
-  .program time { color: #22e5ff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 58px; font-size: 15px; }
+  .program { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  @media (min-width: 560px) { .program { grid-template-columns: repeat(4, 1fr); } }
+  .program li { position: relative; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; border-radius: 0; background: var(--glass); border: 1px solid var(--line); transition: background .2s, transform .15s; min-width: 0; }
+  .program li:hover { background: #33332f; transform: translateY(-2px); }
+  .program time { font-family: var(--display); font-size: 18px; color: #22e5ff; font-variant-numeric: tabular-nums; }
+  .program li span { font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--text); overflow-wrap: anywhere; }
   .program li.done { opacity: .45; }
-  .program li.now span { font-weight: 700; }
-  .program li.now { color: #fff; }
-  .program li.now::before { background: #22e5ff; border-color: #22e5ff; box-shadow: 0 0 14px #22e5ff; }
-  .program li.now::after { content: "TEĎ"; margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .12em; padding: 3px 9px; border-radius: 99px; background: linear-gradient(90deg, #22e5ff, #8b5cff); color: #04060d; font-family: 'Space Grotesk', sans-serif; }
+  .program li.now { background: linear-gradient(160deg, #22e5ff, #8b5cff 60%, #ff3df2); border-color: transparent; }
+  .program li.now time, .program li.now span { color: #04060d; }
+  .program li.now::after { content: "TEĎ"; position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 2px 6px; background: #04060d; color: #fff; border-radius: 0; }
 
   /* grid */
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-radius: 18px; overflow: hidden; }
@@ -781,15 +781,12 @@ function homeHtml() {
   var cover = c.coverId ? ' cover" style="background-image:url(\'' + esc(IMG.thumb(c.coverId, 1600)) + '\')' : '';
   var h = '<div class="wrap">';
   var brush = '<svg class="brush" viewBox="0 0 300 420" aria-hidden="true"><path d="M150 4 C 120 90, 60 170, 64 300 C 66 350, 94 380, 120 404 C 112 330, 128 250, 150 200 C 170 250, 190 330, 182 404 C 210 380, 236 350, 236 300 C 240 170, 180 90, 150 4 Z" fill="#2452e8"/><path d="M40 320 C 30 280, 40 250, 58 236 C 66 290, 90 320, 116 330 C 96 346, 62 344, 40 320 Z" fill="#2452e8"/><path d="M262 320 C 272 280, 262 250, 244 236 C 236 290, 212 320, 186 330 C 206 346, 240 344, 262 320 Z" fill="#2452e8"/></svg>';
-  var tickerTxt = [c.title, fmtDate(c.date, true), c.place].filter(Boolean).join('  ✦  ') + '  ✦  ';
-  var tickerRow = '<span>' + esc(tickerTxt) + '</span>';
   h += '<header class="hero' + cover + '">' + brush +
     (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
     '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
     (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) + '</header>' +
-    '<div class="ticker" aria-hidden="true"><div class="track">' + tickerRow + tickerRow + tickerRow + tickerRow + '</div></div>' +
-    '<div class="halftone" aria-hidden="true"><i></i></div>';
+    '';
 
   if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
 
