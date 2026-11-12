@@ -755,6 +755,7 @@ var MAT = [], CLASSES = {};
 function setClasses(arr) { CLASSES = {}; (arr || []).forEach(function (c) { if (c && c.n) CLASSES[c.n] = (c.ids || []).slice(); }); MAT = []; Object.keys(CLASSES).forEach(function (k) { MAT = MAT.concat(CLASSES[k]); }); }
 function classesArr() { return Object.keys(CLASSES).map(function (n) { return { n: n, ids: CLASSES[n].slice() }; }); }
 function loadMat() {
+  if (window.MOMENTY_NO_CLASSES) { setClasses([]); return Promise.resolve(); }
   var fromCfg = S.cfg && Array.isArray(S.cfg.classes) && S.cfg.classes.length;
   var src = fromCfg ? Promise.resolve(null) : fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; });
   return src.then(function (l) {
@@ -1301,7 +1302,7 @@ function settingsHtml() {
     TEXTS.map(function (t) { return '<label class="lbl">' + esc(t[1]) + '</label><input class="inp" name="tx_' + t[0] + '" maxlength="200" placeholder="' + esc(t[2]) + '" value="' + esc(tx[t[0]] || '') + '">'; }).join('') +
     '<label class="lbl">Vlastní pravidla galerie (nahradí výchozí)</label><textarea class="inp" name="tx_rulesText" maxlength="600" placeholder="Nech prázdné pro výchozí pravidla">' + esc(tx.rulesText || '') + '</textarea></div>';
   var cls = c.classes && c.classes.length ? c.classes : classesArr();
-  h += '<div class="card"><h2>Třídy a portréty</h2><p class="muted small" style="margin:0 0 6px">Portréty se nahrají hned, třídy a pořadí se uloží tlačítkem Uložit změny.</p>' +
+  if (!window.MOMENTY_NO_CLASSES) h += '<div class="card"><h2>Třídy a portréty</h2><p class="muted small" style="margin:0 0 6px">Portréty se nahrají hned, třídy a pořadí se uloží tlačítkem Uložit změny.</p>' +
     cls.map(function (k, i) {
       return '<div class="clsed"><div class="clsed-head"><input class="inp" name="cls_' + i + '" maxlength="20" value="' + esc(k.n) + '"><button type="button" class="sbtn" data-clsdel="' + i + '">Smazat třídu</button></div>' +
         '<div class="clsed-ph">' + k.ids.map(function (id, j) { return '<span><img src="' + esc(matThumb(id)) + '" alt=""><button type="button" data-phdel="' + i + ':' + j + '" aria-label="Odebrat">✕</button></span>'; }).join('') + '</div>' +
