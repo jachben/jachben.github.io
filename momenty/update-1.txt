@@ -1,0 +1,105 @@
+-- Momenty: rozšíření administrace (texty, obrázky, třídy). Spustit jednou v SQL Editoru.
+
+create or replace function public.admin(p_pw text, p_action text, p_a jsonb default null, p_b jsonb default null) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_role text;
+  v_s jsonb;
+  v_scr jsonb;
+  v_txt text;
+begin
+  select role into v_role from admins where pw_hash = crypt(coalesce(p_pw, ''), pw_hash) order by role = 'owner' desc limit 1;
+  if v_role is null then
+    perform pg_sleep(0.5);
+    raise exception 'Špatné heslo';
+  end if;
+
+  case p_action
+  when 'check' then
+    return jsonb_build_object('role', v_role, 'driveUrl', '', 'photosUrl', '', 'photosError', '',
+      'coAdmins', case when v_role = 'owner' then coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name)
+        from admins where role = 'coadmin'), '[]'::jsonb) else '[]'::jsonb end);
+  when 'pending' then return _photos_json('pending');
+  when 'hidden' then return _photos_json('hidden');
+  when 'approve', 'restore' then update photos set status = 'published', reports = 0 where id = p_a #>> '{}';
+  when 'hide' then update photos set status = 'hidden' where id = p_a #>> '{}';
+  when 'delete' then update photos set status = 'deleted' where id = p_a #>> '{}';
+  when 'delMsg' then
+    delete from messages where id::text = p_a #>> '{}';
+    return list_messages();
+  when 'delComment' then
+    delete from comments where id::text = p_b #>> '{}';
+    return list_comments(p_a #>> '{}');
+  when 'saveSettings' then
+    v_s := _settings();
+    v_s := v_s || jsonb_build_object(
+      'title', coalesce(nullif(_clean(p_a ->> 'title', 80), ''), v_s ->> 'title'),
+      'subtitle', _clean(p_a ->> 'subtitle', 120),
+      'date', case when coalesce(p_a ->> 'date', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'date' else '' end,
+      'place', _clean(p_a ->> 'place', 80),
+      'welcome', _clean_multi(p_a ->> 'welcome', 800),
+      'program', coalesce((select jsonb_agg(jsonb_build_array(_clean(r ->> 0, 16), _clean(r ->> 1, 140)))
+        from jsonb_array_elements(case when jsonb_typeof(p_a -> 'program') = 'array' then p_a -> 'program' else '[]'::jsonb end) r
+        where _clean(r ->> 0, 16) <> '' or _clean(r ->> 1, 140) <> ''), '[]'::jsonb),
+      'icloudUrl', case when coalesce(p_a ->> 'icloudUrl', '') ~ '^https://' then left(p_a ->> 'icloudUrl', 400) else '' end,
+      'msgTitle', coalesce(nullif(_clean(p_a ->> 'msgTitle', 60), ''), 'Vzkazy'),
+      'msgSub', _clean(p_a ->> 'msgSub', 120),
+      'maxSize', case when (p_a ->> 'maxSize') in ('0', '1600', '2560', '4000') then (p_a ->> 'maxSize')::int else 0 end,
+      'moderation', coalesce((p_a ->> 'moderation')::boolean, false),
+      'showDriveLink', false,
+      'comments', coalesce((p_a ->> 'comments')::boolean, true),
+      'reactions', coalesce((p_a ->> 'reactions')::boolean, true),
+      'theme', case when (p_a ->> 'theme') in ('neon', 'aurora', 'synth', 'gold', 'ice') then p_a ->> 'theme' else 'neon' end,
+      'font', case when (p_a ->> 'font') in ('unbounded', 'orbitron', 'syne', 'fraunces') then p_a ->> 'font' else 'unbounded' end,
+      'deleteAt', case when coalesce(p_a ->> 'deleteAt', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'deleteAt' else '' end,
+      'hideHero', coalesce((p_a ->> 'hideHero')::boolean, false),
+      'hidePoster', coalesce((p_a ->> 'hidePoster')::boolean, false),
+      'texts', case when jsonb_typeof(p_a -> 'texts') = 'object' then coalesce((
+          select jsonb_object_agg(k, _clean_multi(v, 600)) from jsonb_each_text(p_a -> 'texts') as t(k, v)
+          where k ~ '^[A-Za-z]{1,30}$' and _clean_multi(v, 600) <> ''), '{}'::jsonb)
+        else coalesce(v_s -> 'texts', '{}'::jsonb) end,
+      'classes', case when jsonb_typeof(p_a -> 'classes') = 'array' then coalesce((
+          select jsonb_agg(jsonb_build_object('n', _clean(c ->> 'n', 20), 'ids', coalesce((
+              select jsonb_agg(x order by o) from (
+                select e #>> '{}' as x, o from jsonb_array_elements(case when jsonb_typeof(c -> 'ids') = 'array' then c -> 'ids' else '[]'::jsonb end) with ordinality as a(e, o)
+              ) q where x ~ '^(sb:[a-z0-9-]{6,40}|[A-Za-z0-9_-]{1,40})$' and o <= 300), '[]'::jsonb)) order by co)
+          from jsonb_array_elements(p_a -> 'classes') with ordinality as cl(c, co)
+          where _clean(c ->> 'n', 20) <> '' and co <= 12), '[]'::jsonb)
+        else coalesce(v_s -> 'classes', '[]'::jsonb) end);
+    update kv set value = v_s where key = 'settings';
+    return v_s;
+  when 'setImage' then
+    v_txt := p_a #>> '{}';
+    if v_txt not in ('avatarId', 'coverId', 'heroId', 'posterId') then raise exception 'Neznámý obrázek'; end if;
+    update kv set value = jsonb_set(value, array[v_txt], to_jsonb(coalesce(p_b #>> '{}', ''))) where key = 'settings';
+    return to_jsonb(coalesce(p_b #>> '{}', ''));
+  when 'screen' then
+    select value into v_scr from kv where key = 'screen';
+    if p_a ? 'paused' then v_scr := v_scr || jsonb_build_object('paused', (p_a ->> 'paused')::boolean); end if;
+    if (p_a ->> 'speed') in ('4', '6', '8', '12', '20') then v_scr := v_scr || jsonb_build_object('speed', (p_a ->> 'speed')::int); end if;
+    if p_a ? 'qr' then v_scr := v_scr || jsonb_build_object('qr', (p_a ->> 'qr')::boolean); end if;
+    if coalesce((p_a ->> 'next')::boolean, false) then v_scr := v_scr || jsonb_build_object('next', coalesce((v_scr ->> 'next')::int, 0) + 1); end if;
+    if p_a ? 'show' then v_scr := v_scr || jsonb_build_object('show', coalesce(p_a ->> 'show', ''), 'showAt', (extract(epoch from now()) * 1000)::bigint); end if;
+    update kv set value = v_scr where key = 'screen';
+    return v_scr;
+  when 'addCoAdmin' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    if _clean(p_a #>> '{}', 40) = '' or length(coalesce(p_b #>> '{}', '')) < 6 then raise exception 'Jméno a heslo (aspoň 6 znaků)'; end if;
+    insert into admins (name, role, pw_hash) values (_clean(p_a #>> '{}', 40), 'coadmin', crypt(p_b #>> '{}', gen_salt('bf')));
+    return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name) from admins where role = 'coadmin'), '[]'::jsonb);
+  when 'removeCoAdmin' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    delete from admins where role = 'coadmin' and id::text = p_a #>> '{}';
+    return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'id', id) order by name) from admins where role = 'coadmin'), '[]'::jsonb);
+  when 'wipe' then
+    if v_role <> 'owner' then raise exception 'Jen hlavní pořadatel'; end if;
+    update photos set status = 'deleted';
+    delete from comments;
+    delete from messages;
+  else
+    raise exception 'Neznámá akce';
+  end case;
+  return 'true'::jsonb;
+end $$;
+
+grant execute on function public.admin(text, text, jsonb, jsonb) to anon, authenticated;

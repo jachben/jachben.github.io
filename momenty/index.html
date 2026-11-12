@@ -97,6 +97,14 @@
   .mv { position: fixed; inset: 0; z-index: 42; background: #000; display: flex; flex-direction: column; }
   .mv-top { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + var(--safe-t)) 14px 8px; font-family: var(--display); font-size: 13px; }
   .mv-top .icon-btn { background: rgba(255,255,255,.12); border: 0; font: 400 28px/1 'Space Grotesk', sans-serif; color: #fff; }
+  .hero-visual { display: block; max-width: min(100%, 420px); max-height: 260px; margin: 0 auto 14px; object-fit: contain; position: relative; z-index: 1; }
+  .clsed { border: 1px solid var(--line); padding: 10px; margin-top: 10px; }
+  .clsed-head { display: flex; gap: 8px; }
+  .clsed-head .inp { flex: 1; }
+  .clsed-ph { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 8px; }
+  .clsed-ph span { position: relative; aspect-ratio: 2 / 3; background: #111; }
+  .clsed-ph img { width: 100%; height: 100%; object-fit: cover; }
+  .clsed-ph button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0,0,0,.7); color: #fff; font-size: 11px; }
   .cls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .cls-tile { display: flex; flex-direction: column; gap: 6px; padding: 10px 10px 14px; background: var(--glass); border: 2px solid #2452e8; text-align: left; color: var(--text); }
   .cls-tile:hover { background: #2a2a27; }
@@ -488,8 +496,15 @@
     addMessage: function (m) { return rpc('add_message', { p_from: m.from || '', p_to: m.to || '', p_text: m.text || '' }); },
     getScreen: function () { return rpc('get_screen'); },
     admin: function (key, action, a, b) {
-      if (action === 'setAvatar' || action === 'setCover') {
-        var which = action === 'setAvatar' ? 'avatarId' : 'coverId';
+      if (action === 'uploadPortrait') {
+        var uid = rid();
+        return upload('s/m/' + uid + '.jpg', b64ToBlob(a.data, a.mime))
+          .then(function () { return upload('s/m/t/' + uid + '.jpg', b64ToBlob(a.thumb || a.data, a.mime)); })
+          .then(function () { return 'sb:' + uid; });
+      }
+      var IMGS = { setAvatar: 'avatarId', setCover: 'coverId', setHero: 'heroId', setPoster: 'posterId' };
+      if (IMGS[action]) {
+        var which = IMGS[action];
         var path = a && a.data ? 's/' + rid() : null;
         var up = path ? upload(path, b64ToBlob(a.data, a.mime)) : Promise.resolve();
         return up.then(function () { return rpc('admin', { p_pw: key, p_action: 'setImage', p_a: which, p_b: path }); });
@@ -770,12 +785,32 @@ function updateBar(mode) {
 }
 window.addEventListener('beforeunload', function (e) { if (S.queue.length) { e.preventDefault(); e.returnValue = ''; } });
 
+/* ================================================ texty stránky (admin) */
+var TEXTS = [
+  ['btnCam', 'Tlačítko fotit', 'Vyfotit'], ['btnUpload', 'Tlačítko nahrát', 'Nahrát'], ['btnGallery', 'Tlačítko galerie', 'Galerie'],
+  ['secGallery', 'Nadpis galerie na úvodu', 'Společná galerie'], ['emptyGallery', 'Text prázdné galerie', 'Zatím tu nic není. Buď první, kdo přidá fotku!'],
+  ['secProgram', 'Nadpis programu', 'Program'], ['galleryTitle', 'Nadpis stránky galerie', 'Galerie'],
+  ['msgHint', 'Vzkazy: text nad třídami', 'Vyber třídu a pak maturanta, kterému chceš napsat.'],
+  ['classHint', 'Vzkazy: text nad fotkami třídy', 'Klepni na fotku a napiš vzkaz na památku.'],
+  ['classWord', 'Slovo „Třída“', 'Třída'], ['personForm', 'Nadpis formuláře u maturanta', 'Napiš vzkaz'],
+  ['msgAllTitle', 'Nadpis obecného vzkazu', 'Vzkaz pro všechny'], ['shareBtn', 'Tlačítko poslat odkaz', '↗ Poslat odkaz'],
+  ['saveBtn', 'Tlačítko uložit fotku', '⬇ Uložit do Fotek'], ['footerRules', 'Odkaz na pravidla (patička)', 'Soukromí a pravidla galerie'],
+  ['footerName', 'Název v patičce', 'Momenty']
+];
+function T(k) { var t = (S.cfg && S.cfg.texts) || {}; if (t[k]) return t[k]; for (var i = 0; i < TEXTS.length; i++) if (TEXTS[i][0] === k) return TEXTS[i][2]; return ''; }
+function matImg(id) { return id.indexOf('sb:') === 0 ? IMG.big('s/m/' + id.slice(3) + '.jpg') : 'maturanti/' + id + '.jpg'; }
+function matThumb(id) { return id.indexOf('sb:') === 0 ? IMG.thumb('s/m/t/' + id.slice(3) + '.jpg') : 'maturanti/t/' + id + '.jpg'; }
+
 /* ================================================ maturanti (třídy a vzkazy) */
 var MAT = [], CLASSES = {};
+function setClasses(arr) { CLASSES = {}; (arr || []).forEach(function (c) { if (c && c.n) CLASSES[c.n] = (c.ids || []).slice(); }); MAT = []; Object.keys(CLASSES).forEach(function (k) { MAT = MAT.concat(CLASSES[k]); }); }
+function classesArr() { return Object.keys(CLASSES).map(function (n) { return { n: n, ids: CLASSES[n].slice() }; }); }
 function loadMat() {
-  return fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (l) {
-    CLASSES = Array.isArray(l) ? { '4FP': l } : (l || {});
-    MAT = []; Object.keys(CLASSES).forEach(function (k) { MAT = MAT.concat(CLASSES[k] || []); });
+  var fromCfg = S.cfg && Array.isArray(S.cfg.classes) && S.cfg.classes.length;
+  var src = fromCfg ? Promise.resolve(null) : fetch('maturanti/list.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; });
+  return src.then(function (l) {
+    if (fromCfg) setClasses(S.cfg.classes);
+    else { var o = Array.isArray(l) ? { '4FP': l } : (l || {}); setClasses(Object.keys(o).map(function (k) { return { n: k, ids: o[k] || [] }; })); }
     if (S.view === 'messages') render(true);
     if (PARAMS.m && MAT.indexOf(String(PARAMS.m)) > -1) openPerson(String(PARAMS.m));
   }).catch(function () {});
@@ -792,7 +827,7 @@ function matGridHtml(cls) {
   if (!ids.length) return '<div class="card empty">Fotky této třídy zatím nejsou.</div>';
   return '<div class="mat-grid">' + ids.map(function (id) {
     var n = matMsgs(id).length;
-    return '<button data-matid="' + id + '" aria-label="Maturant"><img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg">' + (n ? '<span class="mat-n">✉ ' + n + '</span>' : '') + '</button>';
+    return '<button data-matid="' + id + '" aria-label="Maturant"><img loading="lazy" alt="" src="' + esc(matThumb(id)) + '">' + (n ? '<span class="mat-n">✉ ' + n + '</span>' : '') + '</button>';
   }).join('') + '</div>';
 }
 function personListHtml(id) {
@@ -812,9 +847,9 @@ function openPerson(id) {
   S.matId = id;
   el.innerHTML = '<div class="mv-top"><button class="icon-btn" data-mv="prev" aria-label="Předchozí">‹</button><span>' + esc(cls) + ' · ' + (k + 1) + ' / ' + ids.length + '</span>' +
     '<span style="display:flex;gap:8px"><button class="icon-btn" data-mv="next" aria-label="Další">›</button><button class="icon-btn" data-mv="close" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>' +
-    '<div class="pc-scroll"><div class="pc-photo"><span class="pc-frame"><img src="maturanti/' + id + '.jpg" alt=""></span></div><div class="pc-body">' +
-    '<div class="lb-actions"><button class="pill save" data-mv="share">↗ Poslat odkaz</button></div>' +
-    '<form id="pcForm" class="card glow" style="margin-top:12px"><h2 style="margin:0 0 10px">Napiš vzkaz</h2>' +
+    '<div class="pc-scroll"><div class="pc-photo"><span class="pc-frame"><img src="' + esc(matImg(id)) + '" alt=""></span></div><div class="pc-body">' +
+    '<div class="lb-actions"><button class="pill save" data-mv="share">' + esc(T('shareBtn')) + '</button></div>' +
+    '<form id="pcForm" class="card glow" style="margin-top:12px"><h2 style="margin:0 0 10px">' + esc(T('personForm')) + '</h2>' +
     '<input class="inp" name="from" maxlength="40" placeholder="Od koho (nepovinné)" value="' + esc(S.name) + '">' +
     '<textarea class="inp" name="text" maxlength="800" required placeholder="Pár slov na památku…" style="margin-top:8px"></textarea>' +
     '<button class="btn btn-main" style="width:100%;min-height:52px;font-size:16px;margin-top:8px">Poslat vzkaz</button></form>' +
@@ -838,7 +873,7 @@ function bindMat(el) {
       else toast(url, null, null, 10000);
     } else if (a === 'save') {
       toast('Připravuji fotku…', null, null, 30000);
-      fetch('maturanti/' + id + '.jpg').then(function (r) { return r.blob(); }).then(function (bl) {
+      fetch(matImg(id)).then(function (r) { return r.blob(); }).then(function (bl) {
         var f = new File([bl], 'maturant-' + id + '.jpg', { type: 'image/jpeg' });
         toast('Fotka je připravená', 'Uložit do Fotek', function () { shareFiles([f]); }, 60000);
       }).catch(function () { toast('Fotku se nepodařilo stáhnout.'); });
@@ -1036,7 +1071,8 @@ function homeHtml() {
   var cover = c.coverId ? ' cover" style="background-image:url(\'' + esc(IMG.thumb(c.coverId, 1600)) + '\')' : '';
   var h = '<div class="wrap">';
   var brush = '<img class="rocket" src="raketa.png" alt="" aria-hidden="true">';
-  h += '<header class="hero' + cover + '">' + brush.replace('class="rocket"', 'class="rocket rocket-abs"') +
+  var heroVis = c.heroId ? '<img class="hero-visual" alt="" src="' + esc(IMG.big(c.heroId)) + '">' : (c.hideHero ? '' : brush.replace('class="rocket"', 'class="rocket rocket-abs"'));
+  h += '<header class="hero' + cover + '">' + heroVis +
     (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
     '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
@@ -1047,17 +1083,17 @@ function homeHtml() {
   if (isAdmin()) h += '<button class="card glow nav-card" data-go="admin"><span class="ico">⚙️</span><span><b>Administrace</b><br><span class="muted small">Moderace, ovladač plátna, úpravy stránky</span></span><span class="chev">›</span></button>';
 
   h += '<div class="actions">' +
-    '<button class="btn btn-main" data-act="cam">' + I.cam + 'Vyfotit</button>' +
-    '<div class="row2"><button class="btn btn-glass" data-act="pick">' + I.up + 'Nahrát</button>' +
-    '<button class="btn btn-glass" data-go="gallery">' + I.grid + 'Galerie</button></div></div>';
+    '<button class="btn btn-main" data-act="cam">' + I.cam + esc(T('btnCam')) + '</button>' +
+    '<div class="row2"><button class="btn btn-glass" data-act="pick">' + I.up + esc(T('btnUpload')) + '</button>' +
+    '<button class="btn btn-glass" data-go="gallery">' + I.grid + esc(T('btnGallery')) + '</button></div></div>';
 
   h += '<div class="stats"><div class="stat"><b class="grad">' + S.photos.length + '</b><span>' + plural(S.photos.length, 'fotka', 'fotky', 'fotek') + '</span></div>' +
     '<div class="stat"><b class="grad">' + Object.keys(authors).length + '</b><span>fotografů</span></div>' +
     '<div class="stat"><b class="grad">' + S.msgCount + '</b><span>' + plural(S.msgCount, 'vzkaz', 'vzkazy', 'vzkazů') + '</span></div></div>';
 
-  h += '<div class="sec-head"><h2>Společná galerie</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
+  h += '<div class="sec-head"><h2>' + esc(T('secGallery')) + '</h2>' + (S.photos.length ? '<button data-go="gallery">Všech ' + S.photos.length + ' →</button>' : '') + '</div>';
   h += latest.length ? '<div class="grid">' + latest.map(tileHtml).join('') + '</div>'
-    : '<div class="card empty"><div class="big">📸</div>Zatím tu nic není. Buď první, kdo přidá fotku!</div>';
+    : '<div class="card empty"><div class="big">📸</div>' + esc(T('emptyGallery')) + '</div>';
 
   h += '<button class="card nav-card" data-go="messages"><span class="ico">' + I.pen + '</span><span><b>' + esc(c.msgTitle || 'Vzkazy') + '</b><br><span class="muted small">' + esc(c.msgSub || '') + '</span></span><span class="chev">›</span></button>';
 
@@ -1072,16 +1108,16 @@ function homeHtml() {
       });
     }
     var n = c.program.length, fill = cur < 0 ? 0 : (n > 1 ? Math.min(100, Math.round(cur / (n - 1) * 100)) : 100);
-    h += '<div class="card"><h2>Program</h2><ol class="program" style="--fill:' + (fill / 100) + '">' + c.program.map(function (p, i) {
+    h += '<div class="card"><h2>' + esc(T('secProgram')) + '</h2><ol class="program" style="--fill:' + (fill / 100) + '">' + c.program.map(function (p, i) {
       return '<li class="' + (i === cur ? 'now' : (cur > -1 && i < cur ? 'done' : '')) + '"><time>' + esc(p[0]) + '</time><span>' + esc(p[1]) + '</span></li>';
     }).join('') + '</ol></div>';
   }
 
   h += '<footer>' + (c.driveUrl ? '<p><a href="' + esc(c.driveUrl) + '" target="_blank" rel="noopener">⬇ Stáhnout všechny fotky v plné kvalitě</a></p>' : '') +
-    '<p><button data-go="rules">Soukromí a pravidla galerie</button></p>' +
+    '<p><button data-go="rules">' + esc(T('footerRules')) + '</button></p>' +
     (c.deleteAt ? '<p>Fotky se smažou ' + esc(fmtDate(c.deleteAt)) + '.</p>' : '') +
-    '<p>Momenty · <button data-act="' + (isAdmin() ? 'logout' : 'login') + '">' + (isAdmin() ? 'Odhlásit pořadatele' : 'Pořadatel') + '</button></p></footer></div>';
-  h += '<div class="hero-frame" style="margin-top:28px">' + brush + '<div class="poster-art"><img src="' + esc(c.posterUrl || 'plakat.png') + '" alt="' + esc(c.title) + '" loading="lazy"></div></div>';
+    '<p>' + esc(T('footerName')) + ' · <button data-act="' + (isAdmin() ? 'logout' : 'login') + '">' + (isAdmin() ? 'Odhlásit pořadatele' : 'Pořadatel') + '</button></p></footer></div>';
+  if (c.posterId || !c.hidePoster) h += '<div class="hero-frame" style="margin-top:28px">' + (c.posterId || c.hideHero || c.heroId ? '' : brush) + '<div class="poster-art"><img src="' + esc(c.posterId ? IMG.big(c.posterId) : 'plakat.png') + '" alt="' + esc(c.title) + '" loading="lazy"></div></div>';
   return h;
 }
 
@@ -1094,7 +1130,7 @@ function currentList() {
 
 function galleryHtml() {
   var list = currentList(), mine = S.photos.filter(function (p) { return mySet[p.id]; }).length;
-  var h = '<div class="wrap">' + topbar('Galerie · ' + S.photos.length, '<button class="selbtn" style="margin-left:auto" data-act="selmode">' + (S.selMode ? 'Hotovo' : 'Vybrat') + '</button><button class="icon-btn" data-act="pick" aria-label="Nahrát">' + I.up + '</button><button class="icon-btn" data-act="cam" aria-label="Vyfotit">' + I.cam + '</button>');
+  var h = '<div class="wrap">' + topbar(esc(T('galleryTitle')) + ' · ' + S.photos.length, '<button class="selbtn" style="margin-left:auto" data-act="selmode">' + (S.selMode ? 'Hotovo' : 'Vybrat') + '</button><button class="icon-btn" data-act="pick" aria-label="Nahrát">' + I.up + '</button><button class="icon-btn" data-act="cam" aria-label="Vyfotit">' + I.cam + '</button>');
   h += '<div class="tabs">' + [['all', 'Všechny'], ['mine', 'Moje · ' + mine], ['top', '♥ Nejoblíbenější'], ['talk', '💬 Komentované']].map(function (t) {
     return '<button class="tab' + (S.tab === t[0] ? ' on' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
   }).join('') + '</div>';
@@ -1120,20 +1156,20 @@ function messagesHtml() {
   var h;
   if (S.cls) {
     var ids = CLASSES[S.cls] || [];
-    h = '<div class="wrap"><div class="topbar"><button class="icon-btn" data-clsback aria-label="Zpět na třídy">' + I.back + '</button><h2>Třída ' + esc(S.cls) + '</h2><span class="muted small" style="margin-left:auto">' + ids.length + ' ' + plural(ids.length, 'fotka', 'fotky', 'fotek') + '</span></div>' +
-      '<p class="muted small" style="margin:0 0 10px">Klepni na fotku a napiš vzkaz na památku.</p><div id="matGrid">' + matGridHtml(S.cls) + '</div></div>';
+    h = '<div class="wrap"><div class="topbar"><button class="icon-btn" data-clsback aria-label="Zpět na třídy">' + I.back + '</button><h2>' + esc(T('classWord')) + ' ' + esc(S.cls) + '</h2><span class="muted small" style="margin-left:auto">' + ids.length + ' ' + plural(ids.length, 'fotka', 'fotky', 'fotek') + '</span></div>' +
+      '<p class="muted small" style="margin:0 0 10px">' + esc(T('classHint')) + '</p><div id="matGrid">' + matGridHtml(S.cls) + '</div></div>';
     return h;
   }
   h = '<div class="wrap">' + topbar(esc(c.msgTitle || 'Vzkazy'));
   if (names.length) {
-    h += '<p class="muted small" style="margin:0 0 10px">Vyber třídu a pak maturanta, kterému chceš napsat.</p><div class="cls-grid">' + names.map(function (n) {
+    h += '<p class="muted small" style="margin:0 0 10px">' + esc(T('msgHint')) + '</p><div class="cls-grid">' + names.map(function (n) {
       var ids = CLASSES[n] || [], prev = ids.slice(0, 4);
       return '<button class="cls-tile" data-cls="' + esc(n) + '"><span class="cls-prev">' +
-        (prev.length ? prev.map(function (id) { return '<img loading="lazy" alt="" src="maturanti/t/' + id + '.jpg">'; }).join('') : '<i class="cls-empty">📁</i>') +
+        (prev.length ? prev.map(function (id) { return '<img loading="lazy" alt="" src="' + esc(matThumb(id)) + '">'; }).join('') : '<i class="cls-empty">📁</i>') +
         '</span><b>' + esc(n) + '</b><span class="muted small">' + ids.length + ' ' + plural(ids.length, 'fotka', 'fotky', 'fotek') + '</span></button>';
     }).join('') + '</div>';
   }
-  h += '<form class="card glow" id="msgForm" style="margin-top:24px"><h2 style="margin:0 0 6px">Vzkaz pro všechny</h2><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
+  h += '<form class="card glow" id="msgForm" style="margin-top:24px"><h2 style="margin:0 0 6px">' + esc(T('msgAllTitle')) + '</h2><p class="muted small" style="margin:0 0 10px">' + esc(c.msgSub || '') + '</p><div class="two">' +
     '<input class="inp" name="from" maxlength="40" placeholder="Od koho" value="' + esc(S.name) + '">' +
     '<input class="inp" name="to" maxlength="40" placeholder="Pro koho"></div>' +
     '<textarea class="inp" name="text" maxlength="800" required placeholder="Napiš pár slov na památku…" style="margin-top:10px"></textarea>' +
@@ -1154,6 +1190,7 @@ function updateMsgList() { var el = $('#msgList'); if (el) el.innerHTML = msgLis
 
 function rulesHtml() {
   var c = S.cfg;
+  if (T('rulesText')) return '<div class="wrap">' + topbar(esc(T('footerRules'))) + '<div class="card rules" style="margin-top:0"><p style="white-space:pre-line">' + esc(T('rulesText')) + '</p></div></div>';
   return '<div class="wrap">' + topbar('Soukromí a pravidla') + '<div class="card rules" style="margin-top:0">' +
     '<h2>Jak galerie funguje</h2>' +
     '<p>• Nepotřebuješ účet, e-mail ani aplikaci. Jméno u fotky je nepovinné.</p>' +
@@ -1269,6 +1306,7 @@ function adminAct(action, id) {
 var draft = null;
 function settingsHtml() {
   var c = draft || (draft = JSON.parse(JSON.stringify(S.cfg)));
+  if (!c.classes || !c.classes.length) c.classes = classesArr();
   var prog = c.program && c.program.length ? c.program : [['', '']];
   var imgRow = function (key, label, cls) {
     var id = c[key];
@@ -1278,7 +1316,11 @@ function settingsHtml() {
       (id ? '<button type="button" class="sbtn" data-imgdel="' + key + '">Odebrat</button>' : '') + '</div></div>';
   };
   var h = '<div class="wrap">' + topbar('Upravit stránku') + '<form id="setForm">';
-  h += '<div class="card glow" style="margin-top:0"><h2>Vzhled</h2>' + imgRow('avatarId', 'Profilová fotka', '') + imgRow('coverId', 'Úvodní fotka (pozadí nahoře)', 'cover') +
+  h += '<div class="card glow" style="margin-top:0"><h2>Vzhled</h2>' + imgRow('heroId', 'Hlavní obrázek nahoře (místo rakety)', 'cover') +
+    '<label class="chk"><input type="checkbox" name="hideHero"' + (c.hideHero ? ' checked' : '') + '> Bez hlavního obrázku i rakety</label>' +
+    imgRow('posterId', 'Obrázek dole (místo plakátu)', 'cover') +
+    '<label class="chk"><input type="checkbox" name="hidePoster"' + (c.hidePoster ? ' checked' : '') + '> Bez obrázku dole</label>' +
+    imgRow('avatarId', 'Profilová fotka', '') + imgRow('coverId', 'Fotka v pozadí nahoře', 'cover') +
     '<label class="lbl">Barvy</label><div class="swatches">' + Object.keys(THEMES).map(function (k) {
       return '<button type="button" class="sw' + (c.theme === k ? ' on' : '') + '" data-theme="' + k + '" title="' + THEME_NAMES[k] + '" aria-label="' + THEME_NAMES[k] + '" style="background:linear-gradient(135deg,' + THEMES[k].join(',') + ')"></button>';
     }).join('') + '</div>' +
@@ -1305,8 +1347,19 @@ function settingsHtml() {
     '<label class="chk"><input type="checkbox" name="comments"' + (c.comments ? ' checked' : '') + '> Komentáře u fotek</label>' +
     '<label class="chk"><input type="checkbox" name="showDriveLink"' + (c.showDriveLink ? ' checked' : '') + '> Hosté smí stáhnout všechny fotky</label>' +
     '<label class="lbl">Automaticky smazat vše dne (nepovinné)</label><input class="inp" type="date" name="deleteAt" value="' + esc(c.deleteAt) + '"></div>';
+  var tx = c.texts || {};
+  h += '<div class="card"><h2>Texty na stránce</h2><p class="muted small" style="margin:0">Prázdné pole = výchozí text (je vidět šedě).</p>' +
+    TEXTS.map(function (t) { return '<label class="lbl">' + esc(t[1]) + '</label><input class="inp" name="tx_' + t[0] + '" maxlength="200" placeholder="' + esc(t[2]) + '" value="' + esc(tx[t[0]] || '') + '">'; }).join('') +
+    '<label class="lbl">Vlastní pravidla galerie (nahradí výchozí)</label><textarea class="inp" name="tx_rulesText" maxlength="600" placeholder="Nech prázdné pro výchozí pravidla">' + esc(tx.rulesText || '') + '</textarea></div>';
+  var cls = c.classes && c.classes.length ? c.classes : classesArr();
+  h += '<div class="card"><h2>Třídy a portréty</h2><p class="muted small" style="margin:0 0 6px">Portréty se nahrají hned, třídy a pořadí se uloží tlačítkem Uložit změny.</p>' +
+    cls.map(function (k, i) {
+      return '<div class="clsed"><div class="clsed-head"><input class="inp" name="cls_' + i + '" maxlength="20" value="' + esc(k.n) + '"><button type="button" class="sbtn" data-clsdel="' + i + '">Smazat třídu</button></div>' +
+        '<div class="clsed-ph">' + k.ids.map(function (id, j) { return '<span><img src="' + esc(matThumb(id)) + '" alt=""><button type="button" data-phdel="' + i + ':' + j + '" aria-label="Odebrat">✕</button></span>'; }).join('') + '</div>' +
+        '<button type="button" class="sbtn" data-phadd="' + i + '" style="margin-top:8px">+ Přidat portréty (' + k.ids.length + ')</button></div>';
+    }).join('') + '<button type="button" class="sbtn" data-clsadd style="width:100%;margin-top:10px">+ Přidat třídu</button></div>';
   h += '<div class="savebar"><button class="btn btn-main" style="width:100%" id="saveBtn">Uložit změny</button></div></form>';
-  return h + '<input type="file" id="setImgIn" accept="image/*" hidden></div>';
+  return h + '<input type="file" id="setImgIn" accept="image/*" hidden><input type="file" id="phIn" accept="image/*" multiple hidden></div>';
 }
 
 function progRow(r) {
@@ -1325,6 +1378,10 @@ function collectSettings() {
     moderation: !!fd.get('moderation'), showDriveLink: !!fd.get('showDriveLink'),
     comments: !!fd.get('comments'), reactions: !!fd.get('reactions'), deleteAt: fd.get('deleteAt') || '',
     theme: draft.theme, font: draft.font,
+    hideHero: !!fd.get('hideHero'), hidePoster: !!fd.get('hidePoster'),
+    texts: (function () { var o = {}; TEXTS.concat([['rulesText']]).forEach(function (t) { var v = String(fd.get('tx_' + t[0]) || '').trim(); if (v) o[t[0]] = v; }); return o; })(),
+    classes: (function () { var seen = {}; return (draft.classes && draft.classes.length ? draft.classes : classesArr()).map(function (k, i) {
+      var n = String(fd.get('cls_' + i) || k.n).trim() || k.n, base = n, j = 2; while (seen[n]) n = base + ' (' + (j++) + ')'; seen[n] = 1; return { n: n, ids: k.ids.slice() }; }); })(),
   };
 }
 // Překreslí formulář (po změně fotky, barev, písma), ale zachová rozepsané údaje.
@@ -1344,6 +1401,7 @@ function cropImage(file, size, square) {
   });
 }
 
+var IMG_ACT = { avatarId: 'setAvatar', coverId: 'setCover', heroId: 'setHero', posterId: 'setPoster' };
 function bindSettings() {
   var form = $('#setForm'), rows = $('#progRows'), imgIn = $('#setImgIn'), which = '';
   $('#addRow').onclick = function () { rows.insertAdjacentHTML('beforeend', progRow(['', ''])); rows.lastElementChild.querySelector('input').focus(); };
@@ -1354,19 +1412,41 @@ function bindSettings() {
     else if (b.hasAttribute('data-up') && row.previousElementSibling) rows.insertBefore(row, row.previousElementSibling);
   };
   form.addEventListener('click', function (e) {
+    var cb = e.target.closest('button[data-clsadd],button[data-clsdel],button[data-phdel],button[data-phadd]');
+    if (cb && form.contains(cb)) {
+      var d0 = collectSettings(); Object.keys(d0).forEach(function (k) { draft[k] = d0[k]; });
+      if (cb.hasAttribute('data-clsadd')) { draft.classes.push({ n: 'Třída ' + (draft.classes.length + 1), ids: [] }); reSettings(); }
+      else if (cb.hasAttribute('data-clsdel')) { var ci = +cb.getAttribute('data-clsdel'); if (confirm('Smazat třídu ' + draft.classes[ci].n + '? Portréty v ní zmizí ze stránky.')) { draft.classes.splice(ci, 1); reSettings(); } }
+      else if (cb.hasAttribute('data-phdel')) { var pp = cb.getAttribute('data-phdel').split(':'); draft.classes[+pp[0]].ids.splice(+pp[1], 1); reSettings(); }
+      else if (cb.hasAttribute('data-phadd')) { S.phCls = +cb.getAttribute('data-phadd'); $('#phIn').click(); }
+      return;
+    }
     var b = e.target.closest('button[data-img],button[data-imgdel],button[data-theme],button[data-font]'); if (!b || !form.contains(b)) return;
     if (b.hasAttribute('data-theme')) { draft.theme = b.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', draft.theme); reSettings(); return; }
     if (b.hasAttribute('data-font')) { draft.font = b.getAttribute('data-font'); document.documentElement.setAttribute('data-font', draft.font); reSettings(); return; }
     if (b.hasAttribute('data-img')) { which = b.getAttribute('data-img'); imgIn.click(); return; }
     var k = b.getAttribute('data-imgdel');
     if (!confirm('Odebrat fotku?')) return;
-    adm(k === 'avatarId' ? 'setAvatar' : 'setCover', null).then(function () { S.cfg[k] = ''; draft[k] = ''; reSettings(); });
+    adm(IMG_ACT[k], null).then(function () { S.cfg[k] = ''; draft[k] = ''; reSettings(); });
   });
+  $('#phIn').onchange = function () {
+    var files = Array.prototype.slice.call(this.files || []); this.value = ''; if (!files.length) return;
+    var ci = S.phCls, done = 0, chain = Promise.resolve();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        toast('Nahrávám portréty ' + (done + 1) + ' z ' + files.length + '…', null, null, 120000);
+        return Promise.all([cropImage(f, 1500, false).then(toB64), cropImage(f, 540, false).then(toB64)]);
+      }).then(function (r) { return adm('uploadPortrait', { data: r[0], thumb: r[1], mime: 'image/jpeg' }); })
+        .then(function (id) { var d1 = collectSettings(); Object.keys(d1).forEach(function (k) { draft[k] = d1[k]; }); draft.classes[ci].ids.push(id); done++; reSettings(); })
+        .catch(function (e) { toast('Portrét se nepodařilo nahrát: ' + errMsg(e)); });
+    });
+    chain.then(function () { if (done) toast('Nahráno ' + done + '. Nezapomeň dole kliknout na Uložit změny.', null, null, 8000); });
+  };
   imgIn.onchange = function () {
     var f = imgIn.files[0]; imgIn.value = ''; if (!f) return;
     toast('Nahrávám fotku…', null, null, 30000);
     cropImage(f, which === 'avatarId' ? 800 : 2000, which === 'avatarId').then(toB64).then(function (data) {
-      return adm(which === 'avatarId' ? 'setAvatar' : 'setCover', { data: data, mime: 'image/jpeg' });
+      return adm(IMG_ACT[which], { data: data, mime: 'image/jpeg' });
     }).then(function (id) { S.cfg[which] = id; draft[which] = id; reSettings(); toast('Fotka uložena ✓'); })
       .catch(function (e) { toast('Nepodařilo se: ' + errMsg(e)); });
   };
@@ -1378,6 +1458,7 @@ function bindSettings() {
       var driveUrl = S.cfg.driveUrl || S.driveUrl;
       Object.keys(st).forEach(function (k) { S.cfg[k] = st[k]; });
       S.cfg.driveUrl = st.showDriveLink ? driveUrl : '';
+      if (Array.isArray(st.classes) && st.classes.length) setClasses(st.classes);
       applyTheme();
       toast('Uloženo ✓ Hosté uvidí změny po obnovení stránky');
       go('home');
@@ -1567,7 +1648,7 @@ function showLb() {
     '<div class="lb-actions">' +
     (c.reactions ? '<button class="pill' + (L.h ? ' on' : '') + '" data-r="h" aria-label="Líbí se mi">♥ ' + (p.hr || '') + '</button>' : '') +
     (c.comments ? '<button class="pill" data-cm-open aria-label="Komentáře">💬 ' + (p.c || '') + '</button>' : '') +
-    '<button class="pill save" data-save>⬇ Uložit do Fotek</button>' +
+    '<button class="pill save" data-save>' + esc(T('saveBtn')) + '</button>' +
     (mySet[p.id] ? '' : '<button class="pill" data-report title="Nahlásit" aria-label="Nahlásit">⚑</button>') + '</div>';
   if (isAdmin()) bot += '<div class="lb-actions adm"><button class="pill acc" data-project>📽 Na plátno</button><button class="pill danger" data-adm="hide" data-id="' + p.id + '">Skrýt</button><button class="pill danger" data-adm="delete" data-id="' + p.id + '" aria-label="Smazat">🗑</button></div>';
   $('#lbBot').innerHTML = bot;

@@ -252,12 +252,26 @@ begin
       'reactions', coalesce((p_a ->> 'reactions')::boolean, true),
       'theme', case when (p_a ->> 'theme') in ('neon', 'aurora', 'synth', 'gold', 'ice') then p_a ->> 'theme' else 'neon' end,
       'font', case when (p_a ->> 'font') in ('unbounded', 'orbitron', 'syne', 'fraunces') then p_a ->> 'font' else 'unbounded' end,
-      'deleteAt', case when coalesce(p_a ->> 'deleteAt', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'deleteAt' else '' end);
+      'deleteAt', case when coalesce(p_a ->> 'deleteAt', '') ~ '^\d{4}-\d{2}-\d{2}$' then p_a ->> 'deleteAt' else '' end,
+      'hideHero', coalesce((p_a ->> 'hideHero')::boolean, false),
+      'hidePoster', coalesce((p_a ->> 'hidePoster')::boolean, false),
+      'texts', case when jsonb_typeof(p_a -> 'texts') = 'object' then coalesce((
+          select jsonb_object_agg(k, _clean_multi(v, 600)) from jsonb_each_text(p_a -> 'texts') as t(k, v)
+          where k ~ '^[A-Za-z]{1,30}$' and _clean_multi(v, 600) <> ''), '{}'::jsonb)
+        else coalesce(v_s -> 'texts', '{}'::jsonb) end,
+      'classes', case when jsonb_typeof(p_a -> 'classes') = 'array' then coalesce((
+          select jsonb_agg(jsonb_build_object('n', _clean(c ->> 'n', 20), 'ids', coalesce((
+              select jsonb_agg(x order by o) from (
+                select e #>> '{}' as x, o from jsonb_array_elements(case when jsonb_typeof(c -> 'ids') = 'array' then c -> 'ids' else '[]'::jsonb end) with ordinality as a(e, o)
+              ) q where x ~ '^(sb:[a-z0-9-]{6,40}|[A-Za-z0-9_-]{1,40})$' and o <= 300), '[]'::jsonb)) order by co)
+          from jsonb_array_elements(p_a -> 'classes') with ordinality as cl(c, co)
+          where _clean(c ->> 'n', 20) <> '' and co <= 12), '[]'::jsonb)
+        else coalesce(v_s -> 'classes', '[]'::jsonb) end);
     update kv set value = v_s where key = 'settings';
     return v_s;
   when 'setImage' then
     v_txt := p_a #>> '{}';
-    if v_txt not in ('avatarId', 'coverId') then raise exception 'Neznámý obrázek'; end if;
+    if v_txt not in ('avatarId', 'coverId', 'heroId', 'posterId') then raise exception 'Neznámý obrázek'; end if;
     update kv set value = jsonb_set(value, array[v_txt], to_jsonb(coalesce(p_b #>> '{}', ''))) where key = 'settings';
     return to_jsonb(coalesce(p_b #>> '{}', ''));
   when 'screen' then
