@@ -1795,6 +1795,12 @@ function poll() {
 }
 
 function start() {
+  // Administrace přes soukromý odkaz: …/momenty/admin/#k=HESLO (část za # se nikam neposílá).
+  var hk = (location.hash.match(/[#&]k=([^&]+)/) || [])[1];
+  if (window.MOMENTY_ADMIN_PAGE && hk) {
+    S.admin = decodeURIComponent(hk); save('admin', S.admin);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
   render();
   api('init').then(function (d) {
     S.cfg = d.cfg; S.msgCount = d.messages; merge(d.photos);
