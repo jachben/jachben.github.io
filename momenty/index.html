@@ -1234,16 +1234,27 @@ function adminHtml() {
   h += '<div class="card"><h2>Moderace</h2><div class="tabs">' +
     '<button class="tab' + (S.admTab === 'pending' ? ' on' : '') + '" data-admtab="pending">Čeká · ' + S.pending.length + '</button>' +
     '<button class="tab' + (S.admTab === 'hidden' ? ' on' : '') + '" data-admtab="hidden">Skryté · ' + S.hidden.length + '</button>' +
-    '<button class="tab" data-go="gallery">Zveřejněné · ' + S.photos.length + '</button></div>';
-  var list = S.admTab === 'pending' ? S.pending : S.hidden;
+    '<button class="tab' + (S.admTab === 'published' ? ' on' : '') + '" data-admtab="published">Zveřejněné · ' + S.photos.length + '</button></div>';
+  var list = S.admTab === 'pending' ? S.pending : S.admTab === 'published' ? S.photos : S.hidden;
+  if (S.admTab === 'published' && S.photos.length) h += '<button class="btn btn-glass" style="width:100%;margin:4px 0 6px;color:var(--bad)" data-act="delallphotos">🗑 Smazat všechny zveřejněné fotky (' + S.photos.length + ')</button>';
   if (S.admTab === 'pending' && !S.cfg.moderation) h += '<p class="muted small" style="margin-top:0">Schvalování je vypnuté, fotky se zveřejňují hned. Zapneš ho v „Upravit stránku“.</p>';
   h += list.length ? list.map(function (p) {
     return '<div class="pend"><img src="' + esc(IMG.thumb(p.id, 200)) + '" alt="" loading="lazy" data-zoom="' + p.id + '"><div class="sp"><b>' + esc(p.a || 'Anonym') + '</b><br><span class="muted small">' + ago(p.t) + (p.r ? ' · ⚑ ' + p.r + '× nahlášeno' : '') + '</span></div><div class="bt">' +
       (S.admTab === 'pending' ? '<button class="pill acc" data-adm="approve" data-id="' + p.id + '">✓ Zveřejnit</button><button class="pill" data-adm="hide" data-id="' + p.id + '">Skrýt</button>'
+        : S.admTab === 'published' ? '<button class="pill" data-adm="hide" data-id="' + p.id + '">Skrýt</button>'
         : '<button class="pill acc" data-adm="restore" data-id="' + p.id + '">↺ Obnovit</button>') +
       '<button class="pill danger" data-adm="delete" data-id="' + p.id + '">🗑</button></div></div>';
   }).join('') : '<p class="muted small">Nic tu není.</p>';
   h += '</div>';
+
+  var allMsgs = S.messages || [];
+  h += '<div class="card"><h2>Vzkazy · ' + (S.messages === null ? '…' : allMsgs.length) + '</h2>' +
+    (S.messages === null ? '<p class="muted small">Načítám…</p>' : allMsgs.length ? allMsgs.map(function (m) {
+      return '<div class="pend"><div class="sp">' + (m.to && String(m.to).indexOf('mat:') !== 0 ? '<b>Pro ' + esc(m.to) + '</b><br>' : '') + esc(m.text) +
+        '<br><span class="muted small">— ' + esc(m.from || 'Anonym') + ' · ' + ago(m.t) + '</span></div><div class="bt"><button class="pill danger" data-delmsg="' + esc(m.id) + '">🗑</button></div></div>';
+    }).join('') : '<p class="muted small">Zatím žádné vzkazy.</p>') + '</div>';
+  h += '<div class="card"><h2>Program</h2><ol class="program">' + (S.cfg.program || []).map(function (p) { return '<li><time>' + esc(p[0]) + '</time><span>' + esc(p[1]) + '</span></li>'; }).join('') + '</ol>' +
+    '<button class="btn btn-main" style="width:100%;min-height:52px;font-size:15px;margin-top:10px" data-act="editprog">✏️ Upravit program</button></div>';
 
   if (S.role === 'owner') {
     h += '<div class="card"><h2>Spolupořadatelé</h2><p class="muted small" style="margin-top:0">Dej přístup do administrace dalším lidem. Každý má vlastní heslo, které mu můžeš kdykoli odebrat.</p>' +
@@ -1261,6 +1272,7 @@ function loadAdminData() {
   adm('pending').then(function (l) { S.pending = l; if (S.view === 'admin') render(true); }).catch(function () {});
   adm('hidden').then(function (l) { S.hidden = l; if (S.view === 'admin') render(true); }).catch(function () {});
   api('getScreen').then(function (s) { S.screen = s; if (S.view === 'admin') render(true); }).catch(function () {});
+  api('listMessages').then(function (l) { S.messages = l; S.msgCount = l.length; if (S.view === 'admin') render(true); }).catch(function () {});
 }
 
 function adminLogin(key, silent) {
@@ -1463,7 +1475,7 @@ function bindSettings() {
       if (Array.isArray(st.classes) && st.classes.length) setClasses(st.classes);
       applyTheme();
       toast('Uloženo ✓ Hosté uvidí změny po obnovení stránky');
-      go('home');
+      go(window.MOMENTY_ADMIN_PAGE ? 'admin' : 'home');
     }).catch(function (err) { btn.disabled = false; btn.textContent = 'Uložit změny'; toast('Nepodařilo se: ' + errMsg(err)); });
   };
 }
@@ -1527,7 +1539,7 @@ document.addEventListener('click', function (e) {
   if (t.hasAttribute('data-rmco')) { if (confirm('Odebrat spolupořadatele?')) adm('removeCoAdmin', t.getAttribute('data-rmco')).then(function (l) { S.coAdmins = l; render(true); }); return; }
   if (t.hasAttribute('data-delmsg')) {
     if (!confirm('Smazat vzkaz?')) return;
-    adm('delMsg', t.getAttribute('data-delmsg')).then(function (l) { S.messages = l; S.msgCount = l.length; updateMsgList(); });
+    adm('delMsg', t.getAttribute('data-delmsg')).then(function (l) { S.messages = l; S.msgCount = l.length; if (S.view === 'admin') render(true); else updateMsgList(); toast('Vzkaz smazán'); });
     return;
   }
   if (t.hasAttribute('data-scr')) {
@@ -1556,7 +1568,14 @@ document.addEventListener('click', function (e) {
   else if (a === 'pickdir') { $('#modal').hidden = true; $('#dirIn').click(); }
   else if (a === 'share') showQrModal();
   else if (a === 'login') showLogin();
-  else if (a === 'logout') { S.role = ''; S.admin = ''; save('admin', ''); go('home'); toast('Odhlášeno'); }
+  else if (a === 'logout') { S.role = ''; S.admin = ''; save('admin', ''); if (window.MOMENTY_ADMIN_PAGE) { location.reload(); return; } go('home'); toast('Odhlášeno'); }
+  else if (a === 'editprog') { go('settings'); setTimeout(function () { var r = $('#progRows'); if (r) r.closest('.card').scrollIntoView({ behavior: 'smooth' }); }, 60); }
+  else if (a === 'delallphotos') {
+    if (!confirm('Opravdu smazat všech ' + S.photos.length + ' zveřejněných fotek? Vzkazy zůstanou.')) return;
+    var ids = S.photos.map(function (p) { return p.id; }), n = 0, chain = Promise.resolve();
+    ids.forEach(function (id) { chain = chain.then(function () { return adm('delete', id).then(function () { n++; toast('Mažu ' + n + ' z ' + ids.length + '…', null, null, 60000); }); }); });
+    chain.then(function () { S.photos = []; render(true); toast('Smazáno ' + n + ' fotek'); }).catch(function (e) { toast('Chyba: ' + errMsg(e)); poll(); });
+  }
   else if (a === 'wipe') {
     if (!confirm('Opravdu smazat VŠECHNY fotky, vzkazy a komentáře?')) return;
     if (prompt('Pro potvrzení napiš SMAZAT') !== 'SMAZAT') return;
@@ -1781,7 +1800,8 @@ function start() {
     if (PARAMS.v === 'platno') return startScreen();
     if (PARAMS.v === 'qr') return startPrint();
     render();
-    if (S.admin) adminLogin(S.admin, true);
+    if (S.admin) adminLogin(S.admin, true).then(function () { if (window.MOMENTY_ADMIN_PAGE && isAdmin()) go('admin'); else if (window.MOMENTY_ADMIN_PAGE) showLogin(); });
+    else if (window.MOMENTY_ADMIN_PAGE) showLogin();
     loadMat();
     IDB.all().then(function (items) {
       if (!items || !items.length) return;
