@@ -350,6 +350,10 @@
   .screen .corner { position: absolute; right: 2.6vw; bottom: 2.6vw; background: #fff; color: #111; border-radius: 0; padding: 1vw; text-align: center; font: 800 1.15vw 'Space Grotesk'; }
   .screen .corner .q canvas, .screen .corner .q img { width: 11vw !important; height: 11vw !important; }
   .screen .controls { position: absolute; top: 6vw; right: 3vw; display: none; gap: 8px; }
+  .scr-start { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4vw; background: rgba(5,6,11,.82); color: #fff; cursor: pointer; border: 0; }
+  .scr-start b { font: 700 4vw var(--display); padding: 1.6vw 3.4vw; background: #2452e8; text-transform: uppercase; letter-spacing: .04em; }
+  .scr-start span { font: 500 1.4vw 'Space Grotesk', sans-serif; color: #c8cbe0; }
+  @media (max-width: 700px) { .scr-start b { font-size: 26px; padding: 14px 24px; } .scr-start span { font-size: 13px; } }
   .screen.ctl .controls { display: flex; }
   .screen .wait { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
   .screen .wait b { display: block; font: 800 4vw var(--display); margin-bottom: 1vw; }
@@ -1795,6 +1799,7 @@ function poll() {
 function start() {
   // Administrace přes soukromý odkaz: …/momenty/admin/#k=HESLO (část za # se nikam neposílá).
   var hk = (location.hash.match(/[#&]k=([^&]+)/) || [])[1];
+  if (window.MOMENTY_ADMIN_PAGE && window.MOMENTY_ADMIN_KEY && !hk) { S.admin = window.MOMENTY_ADMIN_KEY; save('admin', S.admin); }
   if (window.MOMENTY_ADMIN_PAGE && hk) {
     S.admin = decodeURIComponent(hk); save('admin', S.admin);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
@@ -1803,7 +1808,7 @@ function start() {
   api('init').then(function (d) {
     S.cfg = d.cfg; S.msgCount = d.messages; merge(d.photos);
     applyTheme();
-    if (PARAMS.v === 'platno') return startScreen();
+    if (PARAMS.v === 'platno' || window.MOMENTY_SCREEN) return startScreen();
     if (PARAMS.v === 'qr') return startPrint();
     render();
     if (S.admin) adminLogin(S.admin, true).then(function () { if (window.MOMENTY_ADMIN_PAGE && isAdmin()) go('admin'); else if (window.MOMENTY_ADMIN_PAGE) showLogin(); });
@@ -1831,6 +1836,18 @@ function startScreen() {
     '<div class="controls"><button class="pill" id="sPause">⏸</button><button class="pill" id="sNext">⏭</button><button class="pill" id="sFull">⛶ Celá obrazovka</button></div>' +
     '<div class="wait" id="wait"><div><b class="grad">Naskenuj a foť</b><span>První fotka se objeví tady</span><br><div class="q" id="waitQr"></div></div></div></div>';
   qr($('#scrQr'), 220); qr($('#waitQr'), 320);
+  // Start: jedno klepnutí zapne celou obrazovku a zabrání usnutí displeje.
+  var lock = null;
+  function keepAwake() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () {}); } catch (e) {} }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && $('#scrStart') && $('#scrStart').hidden) keepAwake(); });
+  var startBtn = document.createElement('button');
+  startBtn.id = 'scrStart'; startBtn.className = 'scr-start';
+  startBtn.innerHTML = '<b>▶ Spustit promítání</b><span>na celou obrazovku · klávesa F přepíná celou obrazovku</span>';
+  startBtn.onclick = function (e) {
+    e.stopPropagation(); startBtn.hidden = true; keepAwake();
+    var d = document.documentElement; try { (d.requestFullscreen || d.webkitRequestFullscreen || function () {}).call(d); } catch (err) {}
+  };
+  $('#scr').appendChild(startBtn);
   var scr = $('#scr'), layers = [$('#L0'), $('#L1')], cur = 0, seen = {}, order = S.photos.slice(), pos = -1, fresh = [];
   var st = { paused: false, speed: 6, qr: true, next: 0, show: '', showAt: 0 }, lastNext = null, lastShow = null, timer = 0, hideCtl = 0;
   S.photos.forEach(function (p) { seen[p.id] = 1; });
