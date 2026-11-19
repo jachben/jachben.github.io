@@ -50,6 +50,9 @@
   /* glass card with gradient border */
   .card { position: relative; background: var(--glass); border-radius: var(--r); padding: 18px; margin-top: 16px; border: 1px solid var(--line); }
   .card.glow { border: 2px solid #2452e8; background: var(--bg); }
+  .welcome-card { border: 2px solid #2452e8; background: linear-gradient(160deg, rgba(36,82,232,.18), transparent 70%), var(--bg); padding: 22px 20px; }
+  .welcome-card h2 { font-family: var(--display); color: #fff; font-size: 1.35rem; line-height: 1.25; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .02em; }
+  .welcome-card p { margin: 0; color: #d6d9ea; line-height: 1.6; white-space: pre-line; }
   .card.glow::before { content: none; }
 
   /* hero */
@@ -1084,7 +1087,7 @@ function homeHtml() {
     (c.avatarId ? '<div class="avatar-ring"><img alt="" src="' + esc(IMG.thumb(c.avatarId, 400)) + '"></div>' : '') +
     '<span class="chip">' + (phase ? '<span class="live"></span>Právě probíhá' : '✦ ' + esc(fmtDate(c.date, true))) + (c.place ? ' · ' + esc(c.place) : '') + '</span>' +
     '<h1 class="grad">' + esc(c.title) + '</h1>' + (c.subtitle ? '<p class="sub">' + esc(c.subtitle) + '</p>' : '') +
-    (c.welcome ? '<p class="welcome">' + esc(c.welcome) + '</p>' : '') + countdownHtml(c) +
+    countdownHtml(c) +
     '<p class="hero-date">' + esc(fmtDate(c.date, true)) + ' · <b>' + esc(firstTime(c)) + '</b></p></header>' +
     '';
 
@@ -1104,6 +1107,12 @@ function homeHtml() {
     : '<div class="card empty"><div class="big">📸</div>' + esc(T('emptyGallery')) + '</div>';
 
   h += '<button class="card nav-card" data-go="messages"><span class="ico">' + I.pen + '</span><span><b>' + esc(c.msgTitle || 'Vzkazy') + '</b><br><span class="muted small">' + esc(c.msgSub || '') + '</span></span><span class="chev">›</span></button>';
+
+  // Uvítací okénko nad programem: první řádek je nadpis, zbytek text.
+  if (c.welcome && String(c.welcome).trim()) {
+    var wl = String(c.welcome).trim().split(/\n+/), wh = wl.length > 1 ? wl.shift() : '';
+    h += '<div class="card welcome-card">' + (wh ? '<h2>' + esc(wh) + '</h2>' : '') + '<p>' + esc(wl.join('\n\n')) + '</p></div>';
+  }
 
   if (c.program && c.program.length) {
     var cur = -1;
@@ -1352,7 +1361,7 @@ function settingsHtml() {
     '<label class="lbl">Podnadpis</label><input class="inp" name="subtitle" maxlength="120" value="' + esc(c.subtitle) + '">' +
     '<div class="two"><div><label class="lbl">Datum</label><input class="inp" type="date" name="date" value="' + esc(c.date) + '"></div>' +
     '<div><label class="lbl">Místo</label><input class="inp" name="place" maxlength="80" value="' + esc(c.place) + '"></div></div>' +
-    '<label class="lbl">Uvítací text</label><textarea class="inp" name="welcome" maxlength="800">' + esc(c.welcome) + '</textarea>' +
+    '<label class="lbl">Uvítací okénko nad programem (první řádek je nadpis)</label><textarea class="inp" name="welcome" rows="8" maxlength="800">' + esc(c.welcome) + '</textarea>' +
     '<div class="two"><div><label class="lbl">Název vzkazů</label><input class="inp" name="msgTitle" maxlength="60" value="' + esc(c.msgTitle) + '"></div>' +
     '<div><label class="lbl">Popis vzkazů</label><input class="inp" name="msgSub" maxlength="120" value="' + esc(c.msgSub) + '"></div></div></div>';
   h += '<div class="card"><h2>Program</h2><div id="progRows">' + prog.map(progRow).join('') + '</div>' +
