@@ -50,9 +50,31 @@
   /* glass card with gradient border */
   .card { position: relative; background: var(--glass); border-radius: var(--r); padding: 18px; margin-top: 16px; border: 1px solid var(--line); }
   .card.glow { border: 2px solid #2452e8; background: var(--bg); }
-  .welcome-card { border: 2px solid #2452e8; background: linear-gradient(160deg, rgba(36,82,232,.18), transparent 70%), var(--bg); padding: 22px 20px; }
-  .welcome-card h2 { font-family: var(--display); color: #fff; font-size: 1.35rem; line-height: 1.25; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .02em; }
-  .welcome-card p { margin: 0; color: #d6d9ea; line-height: 1.6; white-space: pre-line; }
+  .welcome-card { position: relative; margin-top: 22px; background: var(--bg); border: 2px solid #2452e8; box-shadow: 0 0 0 4px rgba(36,82,232,.14), 0 20px 60px -24px rgba(36,82,232,.9); animation: wcglow 4s ease-in-out infinite; }
+  @keyframes wcglow { 50% { box-shadow: 0 0 0 4px rgba(36,82,232,.22), 0 20px 70px -18px rgba(92,130,255,1); } }
+  .wc-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #2452e8; color: #fff; font: 700 12px var(--display); letter-spacing: .12em; text-transform: uppercase; }
+  .wc-bar .live { width: 8px; height: 8px; background: #fff; border-radius: 0; animation: blink 1.2s steps(2) infinite; }
+  .wc-bar i { width: 10px; height: 10px; border: 2px solid #fff; display: block; }
+  .wc-bar i:first-of-type { margin-left: auto; }
+  .wc-body { position: relative; overflow: hidden; padding: 24px 20px 20px; background-image: radial-gradient(rgba(92,130,255,.22) 1.1px, transparent 1.6px), linear-gradient(160deg, rgba(36,82,232,.22), transparent 65%); background-size: 9px 9px, auto; }
+  .wc-body::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px); }
+  .wc-rocket { position: absolute; right: -14px; top: 6px; width: 92px; opacity: .9; transform: rotate(14deg); filter: drop-shadow(0 0 14px rgba(92,130,255,.8)); animation: wcfloat 5s ease-in-out infinite; pointer-events: none; }
+  @keyframes wcfloat { 50% { transform: rotate(10deg) translateY(-8px); } }
+  .wc-title { position: relative; margin: 0 70px 16px 0; font: 700 26px/1.15 var(--display); text-transform: uppercase; letter-spacing: .02em; color: #fff; text-shadow: 3px 3px 0 #2452e8; }
+  .wc-title em { font-style: normal; color: #5c82ff; text-shadow: 3px 3px 0 rgba(255,255,255,.9); display: inline-block; animation: wcpop 3s ease-in-out infinite; }
+  @keyframes wcpop { 0%, 86%, 100% { transform: none; } 90% { transform: translate(2px, -2px); } 94% { transform: translate(-2px, 1px); } }
+  .wc-lead { position: relative; margin: 0 56px 12px 0; padding-left: 12px; border-left: 4px solid #2452e8; color: #fff; font-size: 18px; font-weight: 600; line-height: 1.45; }
+  .wc-text { position: relative; margin: 0; color: #c8cbe0; line-height: 1.65; white-space: pre-line; }
+  .wc-foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(92,130,255,.5); }
+  .wc-sign { font: 700 12px var(--display); letter-spacing: .1em; text-transform: uppercase; color: #8fb0ff; }
+  .wc-sign::before { content: "— "; }
+  .wc-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: #fff; color: #05060b; font: 700 13px var(--display); letter-spacing: .06em; text-transform: uppercase; box-shadow: 4px 4px 0 #2452e8; transition: transform .15s, box-shadow .15s; }
+  .wc-cta:active { transform: translate(4px, 4px); box-shadow: 0 0 0 #2452e8; }
+  .wc-cta svg { width: 18px; height: 18px; }
+  .wc-c { position: absolute; width: 14px; height: 14px; border: 0 solid #8fb0ff; pointer-events: none; }
+  .wc-c.tl { top: -7px; left: -7px; border-top-width: 3px; border-left-width: 3px; } .wc-c.tr { top: -7px; right: -7px; border-top-width: 3px; border-right-width: 3px; }
+  .wc-c.bl { bottom: -7px; left: -7px; border-bottom-width: 3px; border-left-width: 3px; } .wc-c.br { bottom: -7px; right: -7px; border-bottom-width: 3px; border-right-width: 3px; }
+  @media (prefers-reduced-motion: reduce) { .welcome-card, .wc-rocket, .wc-title em, .wc-bar .live { animation: none; } }
   .card.glow::before { content: none; }
 
   /* hero */
@@ -1057,7 +1079,16 @@ function homeHtml() {
   // Uvítací okénko nad programem: první řádek je nadpis, zbytek text.
   if (c.welcome && String(c.welcome).trim()) {
     var wl = String(c.welcome).trim().split(/\n+/), wh = wl.length > 1 ? wl.shift() : '';
-    h += '<div class="card welcome-card">' + (wh ? '<h2>' + esc(wh) + '</h2>' : '') + '<p>' + esc(wl.join('\n\n')) + '</p></div>';
+    var body = wl.join('\n\n'), lm = body.match(/^[^.!?]+[.!?]+\s*/), lead = lm ? lm[0].trim() : '', rest = lm ? body.slice(lm[0].length) : body;
+    var hw = wh.split(/\s+/), hl = hw.length > 2 ? hw.splice(-2).join(' ') : '';
+    h += '<section class="welcome-card">' +
+      '<div class="wc-bar"><span class="live"></span>Vítejte' + (c.date ? ' · ' + esc(fmtDate(c.date)) : '') + '<i></i><i></i><i></i></div>' +
+      '<div class="wc-body"><img class="wc-rocket" src="raketa.png" alt="" aria-hidden="true">' +
+      (wh ? '<h2 class="wc-title">' + esc(hw.join(' ')) + (hl ? ' <em>' + esc(hl) + '</em>' : '') + '</h2>' : '') +
+      (lead ? '<p class="wc-lead">' + esc(lead) + '</p>' : '') + (rest ? '<p class="wc-text">' + esc(rest) + '</p>' : '') +
+      '<div class="wc-foot"><span class="wc-sign">' + esc(c.subtitle ? 'Maturanti ' + c.subtitle : 'Maturanti') + '</span>' +
+      '<button class="wc-cta" data-act="pick">' + I.up + 'Nahrát momentku</button></div></div>' +
+      '<b class="wc-c tl"></b><b class="wc-c tr"></b><b class="wc-c bl"></b><b class="wc-c br"></b></section>';
   }
 
   if (c.program && c.program.length) {
